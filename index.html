@@ -61,7 +61,7 @@ a{color:var(--accent)}
 .mc-g .wk{font-size:10.5px;color:var(--nav-muted);padding-bottom:2px}
 .mc-g .wk.su,.mc-g .su{color:#ff9aa2}.mc-g .wk.sa,.mc-g .sa{color:#9fb8ff}
 .mc-g button{position:relative;height:28px;border:0;border-radius:7px;background:transparent;color:var(--nav-ink);font-size:12px;padding:0}
-.mc-g button:hover{background:var(--nav-hi)}
+@media (hover:hover){.mc-g button:hover{background:var(--nav-hi)}}
 .mc-g button.out{opacity:.35}
 .mc-g button.td{background:#2f4ac0;color:#fff;font-weight:700}
 .mc-g button.sel{box-shadow:inset 0 0 0 2px #9fb8ff}
@@ -365,7 +365,8 @@ body.dr-open{overflow:hidden}
 @keyframes sl{from{transform:translateX(24px);opacity:.4}to{transform:none;opacity:1}}
 @keyframes fd{from{opacity:0}to{opacity:1}}
 .tabbar a{position:relative}.tbn{position:absolute;top:2px;left:calc(50% + 6px);min-width:16px;height:16px;padding:0 4px;border-radius:99px;background:var(--red-dot);color:#fff;font-style:normal;font-size:10px;line-height:16px;text-align:center}
-@media (min-width:961px){main{height:auto;overflow:visible;padding:28px 34px 40px;gap:16px}}
+@media (min-width:961px){main{height:auto;overflow:visible;padding:28px 34px 40px;gap:16px}
+  #drawer .dr-bg{left:224px}}
 @media (max-width:1180px) and (min-width:961px){.cols{grid-template-columns:1fr}}
 @media (max-width:960px){
   main{padding:14px 14px 96px;gap:12px}
@@ -383,6 +384,7 @@ body.dr-open{overflow:hidden}
 }
 @keyframes up{from{transform:translateY(30px);opacity:.4}to{transform:none;opacity:1}}
 @media print{#drawer{display:none}}
+@media (hover:none){.tile:hover,.ib:hover,button.sync:hover{border-color:var(--line)}.go:hover,.menu button:hover{background:none}.mc-h button:hover{background:transparent}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 @media print{.side,.tabbar,.top .btn{display:none}main{padding:0}}
 </style>
