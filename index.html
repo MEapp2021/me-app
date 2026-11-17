@@ -424,7 +424,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
  * API_URL：集約用GASのウェブアプリURL（…/exec）。空欄なら Excel だけで表示します。
  * LINKS  ：各業務アプリのURL（GitHub Pages）。空欄の項目はメニューに出ません。 */
 const API_URL = 'https://script.google.com/macros/s/AKfycbwH4qejeiP6ShZtMjhiV9EGnJSBQxq2xxmyt4oFinl_rbnw8GkjtFZUOjv8VFJE7J8I/exec';
-const LINKS = { round: 'https://satoshi-13.github.io/round-check/', gas: 'https://satoshi-13.github.io/gas-round/', stock: 'https://satoshi-13.github.io/automatic-ordering/',
+const LINKS = { round: './blood/', gas: 'https://satoshi-13.github.io/gas-round/', stock: 'https://satoshi-13.github.io/automatic-ordering/',
   // shift：MEシフトの画面（GitHub Pages）のURL。管理者には左のメニューに「シフト管理」が出ます
   //        空欄なら、集約用GASから届くMEシフト（GAS）のURLを使います
   shift: 'https://satoshi-13.github.io/me-shift/',
@@ -682,6 +682,7 @@ function statTiles(map) {
 }
 
 /* ---- 要対応：至急・注意だけを出し、未実施は1行にまとめる ---- */
+const SRC_NAME = { 'ラウンド': '血液ガス' };
 const SEV_LV = { '至急': 'alert', '注意': 'warn', '未実施': 'idle' };
 function dueText(v) {
   const m = String(v || '').match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
@@ -695,7 +696,7 @@ function todoRow(r) {
   const act = src === '勤務' ? `<button class="go" data-act="sel" data-w="shift" aria-label="勤務・業務を開く">${IC.next}</button>`
     : href ? `<a class="go" href="${esc(href)}" aria-label="${esc(src)}を開く">${IC.next}</a>` : '<span></span>';
   return `<li class="ti"><i class="sd sd-${SEV_LV[sev] || 'idle'}" title="${esc(sev)}"></i>
-    <div class="tx"><b>${esc(r['内容'])}</b><small><span class="src src-${esc(src)}">${esc(src)}</span>${r['詳細'] ? esc(r['詳細']) : ''}</small></div>
+    <div class="tx"><b>${esc(r['内容'])}</b><small><span class="src src-${esc(src)}">${esc(SRC_NAME[src] || src)}</span>${r['詳細'] ? esc(r['詳細']) : ''}</small></div>
     <span class="due due-${SEV_LV[sev] || 'idle'}">${esc(dueText(r['期限']))}</span>${act}</li>`;
 }
 function todoCard(s) {
@@ -755,7 +756,7 @@ function widgets(s) {
   const today = todayW(), log = logW(), pic = picW(), oxy = oxyW(), cons = consW(), stock = stockW(s);
   // 点検：進み具合・今日の記録・写真と完了率をまとめて1つに
   today.body += `<h3 class="sec">今日の記録</h3>${log.body}<h3 class="sec">写真・点検完了率</h3>${pic.body}`;
-  today.link = LINKS.round ? [LINKS.round, 'ラウンド点検へ'] : null;
+  today.link = LINKS.round ? [LINKS.round, '血液ガス点検へ'] : null;
   const done = num(s['点検_完了']) || 0, total = num(s['点検_総数']) || 0, pct = total ? Math.round(done / total * 100) : 0;
   const bad = rows('今日の状況').reduce((n, r) => n + (num(r['異常数']) || 0), 0);
   today.stat = { color: false, label: '今日の点検', v: pct, unit: '%', bar: pct, lv: bad ? 'alert' : '', sub: bad ? `異常 ${bad}件` : total - done ? `残り ${total - done} 項目` : 'すべて完了' };
@@ -817,7 +818,7 @@ function todoW(s) {
   const max = S.showAll ? list.length : 30;
   const top = all.find(r => r['緊急度'] === '至急') || all.find(r => r['緊急度'] === '注意');
   const srcs = ['すべて'].concat(['ラウンド', '医療ガス', '在庫', '勤務'].filter(f => all.some(r => r['業務'] === f)));
-  const body = `${srcs.length > 2 ? `<div class="chips">${srcs.map(f => `<button class="${S.filter === f ? 'on' : ''}" data-act="filter" data-f="${f}">${f}</button>`).join('')}</div>` : ''}
+  const body = `${srcs.length > 2 ? `<div class="chips">${srcs.map(f => `<button class="${S.filter === f ? 'on' : ''}" data-act="filter" data-f="${f}">${SRC_NAME[f] || f}</button>`).join('')}</div>` : ''}
     ${list.length ? `<ul class="tl-list">${list.slice(0, max).map(todoRow).join('')}</ul>` : '<p class="empty">対応が必要なものはありません</p>'}
     ${list.length > max ? `<button class="more-l" data-act="more">残り ${list.length - max} 件を表示</button>` : ''}`;
   const n = k => num(s[k]) || 0;
@@ -925,7 +926,7 @@ function consW() {
   return { id: 'cons', title: '血液ガス 消耗品', icon: IC.drop, color: 'var(--t-round)', level: al.length ? 'alert' : wa.length ? 'warn' : '',
     mini: al.length ? `<b class="lv-alert">交換 ${al.length}</b>` : wa.length ? `<b class="lv-warn">注意 ${wa.length}</b>` : '<b class="lv-ok">良好</b>',
     summary: `<span class="w-k lv-alert">交換 <b>${al.length}</b></span><span class="w-k lv-warn">注意 <b>${wa.length}</b></span>${first ? `<span class="w-x">${esc(first['名称'])} ${esc(first['現在値'])}${esc(first['単位'])}</span>` : ''}`,
-    body, link: LINKS.round ? [LINKS.round, 'ラウンド点検へ'] : null };
+    body, link: LINKS.round ? [LINKS.round, '血液ガス点検へ'] : null };
 }
 
 /* 勤務・業務（MEシフト）：今日と明日の出勤者と、A業務などの担当。担当割りはその場で変えられる（ログイン中のみ） */
@@ -1109,7 +1110,7 @@ function miniCalHtml() {
 
 function renderNav() {
   const n = src => rows('要対応').filter(r => r['業務'] === src && r['緊急度'] !== '未実施').length;
-  const items = [['dash', 'ダッシュボード', '#', 0, true], ['round', 'ラウンド点検', LINKS.round, S.model ? n('ラウンド') : 0], ['gas', '医療ガス点検', LINKS.gas, S.model ? n('医療ガス') : 0], ['stock', '在庫管理', LINKS.stock, S.model ? n('在庫') : 0]];
+  const items = [['dash', 'ダッシュボード', '#', 0, true], ['round', '血液ガス点検', LINKS.round, S.model ? n('ラウンド') : 0], ['gas', '医療ガス点検', LINKS.gas, S.model ? n('医療ガス') : 0], ['stock', '在庫管理', LINKS.stock, S.model ? n('在庫') : 0]];
   // 管理者だけ：シフト管理（ダッシュボードの通行証を付けて開く。MEシフト側で管理者か確認する）
   if (isAdminUser() && shiftBase()) items.push(['shift', 'シフト管理', shiftAppUrl(), 0, false, true]);
   $('#nav').innerHTML = items.map(i => i[2]
