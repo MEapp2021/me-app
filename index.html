@@ -424,12 +424,12 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
  * API_URL：集約用GASのウェブアプリURL（…/exec）。空欄なら Excel だけで表示します。
  * LINKS  ：各業務アプリのURL（GitHub Pages）。空欄の項目はメニューに出ません。 */
 const API_URL = 'https://script.google.com/macros/s/AKfycbwH4qejeiP6ShZtMjhiV9EGnJSBQxq2xxmyt4oFinl_rbnw8GkjtFZUOjv8VFJE7J8I/exec';
-const LINKS = { round: './blood/', gas: './gas/', stock: 'https://satoshi-13.github.io/automatic-ordering/',
+const LINKS = { round: './blood/', gas: './gas/', stock: './stock/',
   // shift：MEシフトの画面（GitHub Pages）のURL。管理者には左のメニューに「シフト管理」が出ます
   //        空欄なら、集約用GASから届くMEシフト（GAS）のURLを使います
   shift: 'https://satoshi-13.github.io/me-shift/',
   // stockCart：在庫管理の発注カートを直接開くURL。空欄なら在庫管理のトップを開きます（管理者だけに表示）
-  stockCart: '' };
+  stockCart: './stock/#cart' };
 const AUTO_REFRESH_MIN = 5;
 
 const $ = s => document.querySelector(s);
@@ -912,7 +912,7 @@ function stockW(s) {
   return { id: 'stock', title: '在庫', icon: IC.stock, color: 'var(--t-stock)', level: out ? 'alert' : need.length ? 'warn' : '',
     summary: `<span class="w-k">要発注 <b>${esc(s['在庫_要発注'] || 0)}</b></span>${out ? `<span class="w-k lv-alert">在庫切れ <b>${out}</b></span>` : ''}<span class="w-k">発注中 <b>${esc(s['在庫_発注中'] || 0)}</b></span><span class="w-k">今月 <b>${yen(s['在庫_今月発注額'])}</b></span>`,
     body: body + (isAdminUser() && (LINKS.stockCart || LINKS.stock) ? `<a class="big" href="${esc(LINKS.stockCart || LINKS.stock)}">${IC.cart}<span style="margin-left:8px">発注カートを開く${need.length ? `（要発注 ${need.length}品目）` : ''}</span></a>` : ''),
-    link: LINKS.stock ? [LINKS.stock, '在庫管理へ'] : null };
+    link: LINKS.stock ? [LINKS.stock, '物品管理へ'] : null };
 }
 
 function consW() {
@@ -1110,7 +1110,7 @@ function miniCalHtml() {
 
 function renderNav() {
   const n = src => rows('要対応').filter(r => r['業務'] === src && r['緊急度'] !== '未実施').length;
-  const items = [['dash', 'ダッシュボード', '#', 0, true], ['round', '血液ガス点検', LINKS.round, S.model ? n('ラウンド') : 0], ['gas', '医療ガス点検', LINKS.gas, S.model ? n('医療ガス') : 0], ['stock', '在庫管理', LINKS.stock, S.model ? n('在庫') : 0]];
+  const items = [['dash', 'ダッシュボード', '#', 0, true], ['round', '血液ガス点検', LINKS.round, S.model ? n('ラウンド') : 0], ['gas', '医療ガス点検', LINKS.gas, S.model ? n('医療ガス') : 0], ['stock', '物品管理', LINKS.stock, S.model ? n('在庫') : 0]];
   // 管理者だけ：シフト管理（ダッシュボードの通行証を付けて開く。MEシフト側で管理者か確認する）
   if (isAdminUser() && shiftBase()) items.push(['shift', 'シフト管理', shiftAppUrl(), 0, false, true]);
   $('#nav').innerHTML = items.map(i => i[2]
