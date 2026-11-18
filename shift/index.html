@@ -420,9 +420,57 @@
     .toast.error { background: var(--warn); }
     @media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
 
+    .pdf-checks { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; font-size: 14px; }
+    .pdf-checks label { display: flex; align-items: center; gap: 6px; }
+    .radio-set.row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    #printArea { display: none; }
+
+    /* ---------- 印刷・PDF用の勤務表 ---------- */
+    @media print {
+      body > *:not(#printArea) { display: none !important; }
+      body { background: #fff !important; margin: 0; }
+      #printArea { display: block; color: #111; font-family: "BIZ UDPGothic", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+        -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+    .ps-head { display: flex; align-items: flex-end; justify-content: space-between; border-bottom: 2px solid #0f1b2d; padding-bottom: 2mm; margin-bottom: 2.5mm; }
+    .ps-head h1 { font-size: 15pt; margin: 0; letter-spacing: .04em; font-weight: 700; }
+    .ps-head h1 small { font-size: 9pt; font-weight: 400; color: #555; margin-left: 3mm; letter-spacing: 0; }
+    .ps-head .meta { font-size: 7.5pt; color: #555; text-align: right; line-height: 1.4; }
+    .ps-tbl { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 7pt; }
+    .ps-tbl th, .ps-tbl td { border: 0.5pt solid #9aa3af; text-align: center; vertical-align: middle; padding: 0; overflow: hidden; }
+    .ps-tbl thead th { background: #eef1f5; font-weight: 700; height: 4.2mm; }
+    .ps-tbl thead .pdw th { height: 3.6mm; font-weight: 400; font-size: 6.5pt; }
+    .ps-tbl .psat { color: #1d4ed8; } .ps-tbl .psun { color: #c81e1e; }
+    .ps-tbl .prest { background: #f2f4f7; }
+    .ps-tbl thead th.prest { background: #e2e6ec; }
+    .ps-tbl col.pnm { width: 21mm; } .ps-tbl col.ptt { width: 7.5mm; }
+    .ps-tbl tbody td { height: 6.4mm; position: relative; }
+    .ps-tbl th.pnm { text-align: left; padding: 0 1.5mm; font-weight: 700; font-size: 8pt; white-space: nowrap; }
+    .ps-tbl th.pnm small { display: block; font-weight: 400; font-size: 5.5pt; color: #666; }
+    .ps-tbl tr.pgrp th { background: #0f1b2d; color: #fff; text-align: left; padding: 0.6mm 1.5mm; font-size: 7pt; height: auto; letter-spacing: .08em; }
+    .ps-tbl td .plb { font-weight: 700; font-size: 6.8pt; letter-spacing: -.02em; }
+    .ps-tbl td .ptm { display: block; font-size: 5pt; line-height: 1.15; letter-spacing: -.03em; }
+    .ps-tbl td .prq { position: absolute; top: 0.2mm; right: 0.4mm; font-size: 5pt; color: #c81e1e; font-weight: 700; }
+    .ps-tbl td .pnt { position: absolute; bottom: 0.3mm; left: 0.4mm; width: 1.2mm; height: 1.2mm; border-radius: 50%; background: #e08a00; }
+    .ps-tbl td.ptot { font-weight: 700; font-size: 7.5pt; background: #fafbfc; }
+    .ps-tbl tr.psub th.pnm { font-size: 6.5pt; font-weight: 600; color: #333; }
+    .ps-tbl tr.psub td { height: 4.6mm; font-size: 6.5pt; }
+    .ps-tbl tr.psub.pfirst > * { border-top: 1.2pt solid #0f1b2d; }
+    .ps-tbl tr.psub td.pshort { color: #c81e1e; font-weight: 700; background: #fde8e8; }
+    .ps-tbl tr.ptk td { font-size: 5.5pt; line-height: 1.15; height: auto; padding: 0.4mm 0; }
+    .ps-tbl tr.ptk th.pnm i { display: inline-block; width: 3.2mm; height: 3.2mm; border-radius: 50%; color: #fff; font-style: normal; font-size: 5.5pt; line-height: 3.2mm; text-align: center; margin-right: 1mm; vertical-align: middle; }
+    .ps-foot { display: flex; gap: 6mm; margin-top: 2.5mm; font-size: 6.8pt; color: #333; align-items: flex-start; }
+    .ps-foot h3 { font-size: 7pt; margin: 0 0 1mm; color: #0f1b2d; }
+    .ps-legend { display: flex; flex-wrap: wrap; gap: 1mm 2.5mm; max-width: 120mm; }
+    .ps-legend span { display: inline-flex; align-items: center; gap: 1mm; }
+    .ps-legend b { display: inline-block; min-width: 6mm; padding: 0.2mm 0.8mm; border-radius: 0.8mm; text-align: center; font-size: 6.3pt; }
+    .ps-list { flex: 1; max-width: 70mm; }
+    .ps-list div { break-inside: avoid; line-height: 1.45; }
+    .ps-list b { font-weight: 700; margin-right: 1mm; }
+
     @media (max-width: 760px) {
       .bar { padding: 8px 10px; gap: 6px; }
-      h1, .tools, #openStaff, #helpBtn, #thisMonth, #csvBtn, #autoBtn, #sheetLink { display: none !important; }
+      h1, .tools, #openStaff, #helpBtn, #thisMonth, #pdfBtn, #autoBtn, #sheetLink { display: none !important; }
       .notice { margin: 8px 10px 0; }
       .pick-list { grid-template-columns: 1fr 1fr; }
       .state { order: 5; width: 100%; }
@@ -459,7 +507,7 @@
     <span id="syncState" class="state" hidden></span>
     <span id="saveState" class="state admin-only"></span>
     <button class="btn small" id="filterBtn">表示：全員</button>
-    <button class="btn small" id="csvBtn">CSV出力</button>
+    <button class="btn small" id="pdfBtn">PDF出力</button>
     <button class="btn small" id="helpBtn" title="使い方">？</button>
     <button class="btn small" id="reloadBtn" title="シートで変わった内容を読み込み直します">↻ 最新</button>
     <a class="btn small" id="sheetLink" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">シートを開く</a>
@@ -578,6 +626,41 @@
     </div>
   </dialog>
 
+  <!-- PDF出力 -->
+  <dialog id="pdfDlg">
+    <div style="width:440px;max-width:96vw">
+      <div class="dlg-head"><h2>PDF出力</h2><button class="close" data-close="pdfDlg" aria-label="閉じる">×</button></div>
+      <div class="dlg-body">
+        <div class="field"><span class="lbl">対象</span>
+          <div class="radio-set">
+            <label><input type="radio" name="pdfWho" value="shown" checked><div><b>表示中の人</b><span id="pdfShownText"></span></div></label>
+            <label><input type="radio" name="pdfWho" value="all"><div><b>全員</b></div></label>
+          </div>
+        </div>
+        <div class="field"><span class="lbl">のせる内容</span>
+          <div class="pdf-checks">
+            <label><input type="checkbox" id="pdfCounts" checked> 出勤人数（午前・午後）</label>
+            <label><input type="checkbox" id="pdfTasks" checked> 業務の担当</label>
+            <label><input type="checkbox" id="pdfEvents" checked> 全体予定</label>
+            <label><input type="checkbox" id="pdfNotes" checked> メモ</label>
+          </div>
+        </div>
+        <div class="field"><span class="lbl">用紙</span>
+          <div class="radio-set row">
+            <label><input type="radio" name="pdfPaper" value="A4" checked><div><b>A4 横</b></div></label>
+            <label><input type="radio" name="pdfPaper" value="A3"><div><b>A3 横</b></div></label>
+          </div>
+        </div>
+        <p class="help" style="margin:0">次に出る印刷の画面で、送信先（プリンター）を「PDFに保存」にしてください。そのまま紙に印刷もできます。保存していない変更も含めて、いま画面にある内容を出します。</p>
+        <p class="help" style="margin:8px 0 0"><a href="#" id="toCsv">Excel用にCSVで出す</a></p>
+      </div>
+      <div class="dlg-foot"><div class="right">
+        <button class="btn" data-close="pdfDlg">キャンセル</button>
+        <button class="btn primary" id="doPdf">PDFを作る</button>
+      </div></div>
+    </div>
+  </dialog>
+
   <!-- CSV出力 -->
   <dialog id="csvDlg">
     <div style="width:420px;max-width:96vw">
@@ -661,7 +744,7 @@
           保存は変更したセルだけを書き込みます。読み込んだ後にシートで同じセルが変えられていた場合は、シートの内容を優先してお知らせします。<br>
           シートで読み取れない文字（例：「研修」）は赤字で表示し、そのまま残します。<br>
           「業務」に切り替えると、A業務・B業務などの担当を入れられます。業務を選んでセルを押すと付け外しでき、1人に複数の業務を付けられます。右クリックの詳細画面からも選べます。業務の種類・必要人数はシートの「業務マスタ」で変えられます。<br>
-          「表示」で見たい人だけに絞れます（複数選択可）。「CSV出力」で勤務表か明細をダウンロードできます。
+          「表示」で見たい人だけに絞れます（複数選択可）。「PDF出力」で印刷用のきれいな勤務表を作れます（Excel用のCSVもその中から出せます）。
         </p>
       </div>
     </div>
@@ -1984,6 +2067,117 @@
       render();
     }
 
+    /* ---------- PDF出力（印刷用の勤務表を作り、ブラウザの「PDFに保存」で書き出す） ---------- */
+    function openPdf() {
+      const n = displayStaff().length, all = visibleStaff().length;
+      $('pdfShownText').textContent = n < all ? `${n}人（${displayStaff().map(s => s.name).join('、')}）` : `${n}人（全員）`;
+      $('pdfDlg').showModal();
+    }
+    function printSheetHtml(opt) {
+      const staffs = opt.who === 'all' ? visibleStaff() : displayStaff();
+      const days = getDays();
+      const [y, m] = ym.split('-').map(Number);
+      const dcls = d => [d.red ? 'psun' : d.blue ? 'psat' : '', d.rest ? 'prest' : ''].filter(Boolean).join(' ');
+      const used = new Set();
+      const notes = [];
+      const fmtN = v => (Math.round(v * 10) / 10).toString();
+
+      let head = `<colgroup><col class="pnm">${days.map(() => '<col>').join('')}<col class="ptt"><col class="ptt"><col class="ptt"></colgroup>
+        <thead><tr><th rowspan="2">氏名</th>${days.map(d => `<th class="${dcls(d)}">${d.d}</th>`).join('')}<th rowspan="2">公休</th><th rowspan="2">有休</th><th rowspan="2">出勤</th></tr>
+        <tr class="pdw">${days.map(d => `<th class="${dcls(d)}">${d.holiday && d.rest ? '祝' : WEEK[d.dow]}</th>`).join('')}</tr></thead>`;
+
+      let body = '';
+      let prevRole = null;
+      staffs.forEach(staff => {
+        if (staff.role !== prevRole) {
+          body += `<tr class="pgrp"><th colspan="${days.length + 4}">${esc(staff.role)}</th></tr>`;
+          prevRole = staff.role;
+        }
+        const pA = parsePattern(staff.patA);
+        let off = 0, paid = 0, work = 0;
+        const cells = days.map(day => {
+          const c = cellData(day.ds, staff);
+          const t = typeMap[c.type] || typeMap.WORK || {};
+          const r = resolve(staff, day.rest, c);
+          if (c.type === 'OFF') off += 1; else if (c.type === 'AM_OFF' || c.type === 'PM_OFF') off += 0.5;
+          if (c.type === 'PAID') paid += 1; else if (c.type === 'AM_PAID' || c.type === 'PM_PAID') paid += 0.5;
+          work += c.type === 'CHILDCARE' ? 0 : Number(t.workVal) || 0;
+          let inner = '', style = '';
+          const mk = shortMark(c, r);
+          if (c.type === 'SPECIAL') { inner = '<span class="plb">〇</span>'; used.add('SPECIAL'); }
+          else if (mk.text && SHORT[c.type]) { inner = `<span class="plb">${esc(mk.text)}</span>`; used.add(c.type); }
+          else if (mk.text) inner = `<span class="plb">${esc(String(mk.text).slice(0, 3))}</span>`;
+          // 時間の指定がある日は時間も小さく出す（通常の勤務時間の日は出さない）
+          const tm = TIME_CODES.includes(c.type) ? (c.type === 'HOUR_PAID' ? r.offTime : r.workTime)
+            : (r.kind === 'custom' || r.kind === 'pattern' || r.kind === 'rest' || r.kind === 'special') && r.workTime && r.workTime !== pA.time ? r.workTime : '';
+          if (tm) {
+            const mm = String(tm).match(/(\d{1,2}:\d{2})-(\d{1,2}:\d{2})/);
+            if (mm) inner += `<span class="ptm">${mm[1]}<br>${mm[2]}</span>`;
+          }
+          if (OFF_CODES.includes(c.type) || HALF_AM.concat(HALF_PM, TIME_CODES).includes(c.type)) style = `background:${t.bg || '#eef1f5'};color:${t.color || '#111'}`;
+          else if (t.color && c.type !== 'WORK') style = `color:${t.color}`;
+          if (c.isRequest) inner += '<span class="prq">希</span>';
+          if (c.note) { inner += '<span class="pnt"></span>'; notes.push({ d: day, who: staff.name, text: c.note }); }
+          return `<td class="${day.rest ? 'prest' : ''}" style="${style}">${inner}</td>`;
+        }).join('');
+        body += `<tr><th class="pnm">${esc(staff.name)}<small>${esc(shortTime(pA.time))}</small></th>${cells}<td class="ptot">${fmtN(off)}</td><td class="ptot">${fmtN(paid)}</td><td class="ptot">${fmtN(work)}</td></tr>`;
+      });
+
+      if (opt.counts) {
+        const cnts = days.map(d => counts(d, visibleStaff()));
+        const row = (label, role, key, first) => `<tr class="psub${first ? ' pfirst' : ''}"><th class="pnm">${label}</th>${days.map((d, i) => {
+          const v = cnts[i][ROLE_KEY[role]][key];
+          return `<td class="${v < minFor(role, d.rest) ? 'pshort' : d.rest ? 'prest' : ''}">${v}</td>`;
+        }).join('')}<td colspan="3"></td></tr>`;
+        body += row('技士 午前', '臨床工学技士', 'am', true) + row('技士 午後', '臨床工学技士', 'pm')
+          + row('サポーター 午前', 'MEサポーター', 'am') + row('サポーター 午後', 'MEサポーター', 'pm');
+      }
+      if (opt.tasks && (app.tasks || []).length) {
+        (app.tasks || []).forEach((tk, i) => {
+          body += `<tr class="psub ptk${i === 0 && !opt.counts ? ' pfirst' : ''}"><th class="pnm"><i style="background:${esc(tk.color || '#2f4ac0')}">${esc(tk.short || String(tk.name).slice(0, 1))}</i>${esc(tk.name)}</th>${days.map(d => {
+            const who = visibleStaff().filter(x => tasksOf(d.ds, x.id).includes(tk.name)).map(x => esc(x.name.slice(0, 2)));
+            return `<td class="${d.rest ? 'prest' : ''}">${who.join('<br>')}</td>`;
+          }).join('')}<td colspan="3"></td></tr>`;
+        });
+      }
+
+      const legend = [...used].map(code => {
+        const t = typeMap[code] || {};
+        const mark = code === 'SPECIAL' ? '〇' : SHORT[code];
+        const st = code === 'SPECIAL' ? '' : `background:${t.bg || '#eef1f5'};color:${t.color || '#111'}`;
+        return `<span><b style="${st}">${esc(mark)}</b>${esc(t.label || code)}</span>`;
+      }).join('') + '<span><b style="color:#c81e1e">希</b>希望休</span>' + (notes.length ? '<span><b><i style="display:inline-block;width:1.6mm;height:1.6mm;border-radius:50%;background:#e08a00"></i></b>メモあり</span>' : '')
+        + '<span><b style="background:#f2f4f7">　</b>休日</span><span><b style="background:#fde8e8;color:#c81e1e">2</b>最低人数に足りない</span>';
+
+      const evs = opt.events ? days.filter(d => app.events[d.ds]).map(d => `<div><b>${d.d}日(${WEEK[d.dow]})</b>${esc(app.events[d.ds])}</div>`).join('') : '';
+      const nts = opt.notes ? notes.map(n => `<div><b>${n.d.d}日 ${esc(n.who)}</b>${esc(n.text)}</div>`).join('') : '';
+      const now = new Date();
+      const who = ((typeof loadDashAuth === 'function' && loadDashAuth()) || {}).name || '';
+
+      return `<div class="ps-head"><h1>${y}年${m}月 勤務表<small>臨床工学部</small></h1>
+        <div class="meta">${staffs.length}人${staffs.length < visibleStaff().length ? '（表示中の人）' : ''}<br>出力 ${now.getFullYear()}/${pad(now.getMonth() + 1)}/${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}${who ? ' ' + esc(who) : ''}</div></div>
+        <table class="ps-tbl">${head}<tbody>${body}</tbody></table>
+        <div class="ps-foot"><div><h3>記号</h3><div class="ps-legend">${legend}</div></div>
+          ${evs ? `<div class="ps-list"><h3>全体予定</h3>${evs}</div>` : ''}
+          ${nts ? `<div class="ps-list"><h3>メモ</h3>${nts}</div>` : ''}</div>`;
+    }
+    function exportPdf() {
+      const opt = {
+        who: document.querySelector('input[name=pdfWho]:checked').value,
+        paper: document.querySelector('input[name=pdfPaper]:checked').value,
+        counts: $('pdfCounts').checked, tasks: $('pdfTasks').checked, events: $('pdfEvents').checked, notes: $('pdfNotes').checked
+      };
+      let area = $('printArea');
+      if (!area) { area = document.createElement('div'); area.id = 'printArea'; document.body.appendChild(area); }
+      area.innerHTML = `<style>@page { size: ${opt.paper} landscape; margin: 7mm; }</style>` + printSheetHtml(opt);
+      $('pdfDlg').close();
+      const oldTitle = document.title;
+      document.title = `勤務表_${ym}`;   // PDFのファイル名になる
+      const done = () => { document.title = oldTitle; area.innerHTML = ''; window.removeEventListener('afterprint', done); };
+      window.addEventListener('afterprint', done);
+      setTimeout(() => window.print(), 80);
+    }
+
     /* ---------- CSV出力 ---------- */
     function openCsv() {
       const n = displayStaff().length, all = visibleStaff().length;
@@ -2101,7 +2295,9 @@
       $('autoRedo').addEventListener('change', () => { $('autoApply').hidden = true; });
       $('autoFixed').addEventListener('change', () => { $('autoApply').hidden = true; });
       $('applyFilter').onclick = applyFilter;
-      $('csvBtn').onclick = openCsv;
+      $('pdfBtn').onclick = openPdf;
+      $('doPdf').onclick = exportPdf;
+      $('toCsv').onclick = e => { e.preventDefault(); $('pdfDlg').close(); openCsv(); };
       $('doCsv').onclick = exportCsv;
       $('filterDlg').addEventListener('click', e => {
         const q = e.target.closest('[data-quick]');
