@@ -425,6 +425,29 @@
     .radio-set.row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     #printArea { display: none; }
 
+    /* ---------- 見るだけの画面（?view=1） ---------- */
+    body.viewmode > :not(#viewer):not(#loginView):not(#printArea):not(#toast):not(script) { display: none !important; }
+    #viewer { min-height: 100vh; background: #e9edf2; }
+    .v-bar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: var(--surface, #fff); border-bottom: 1px solid var(--line, #dfe4ea); }
+    .v-bar h1 { font-size: 15px; margin: 0 6px 0 2px; letter-spacing: .06em; }
+    .v-nav { display: flex; align-items: center; gap: 4px; }
+    .v-nav b { min-width: 96px; text-align: center; font-size: 15px; }
+    .v-ib { width: 36px; height: 36px; display: inline-grid; place-items: center; border: 1px solid var(--line, #dfe4ea); border-radius: 8px; background: var(--surface, #fff); color: inherit; font-size: 18px; text-decoration: none; cursor: pointer; }
+    .v-btn { height: 36px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border: 1px solid var(--line, #dfe4ea); border-radius: 8px; background: var(--surface, #fff); color: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+    .v-btn.pri { background: #0f6b6e; border-color: #0f6b6e; color: #fff; }
+    .v-sp { flex: 1; }
+    .v-btn:disabled { opacity: .5; cursor: default; }
+    .v-wrap { padding: 18px; overflow-x: auto; }
+    .v-paper { width: 283mm; margin: 0 auto; background: #fff; color: #111; padding: 7mm; box-shadow: 0 2px 14px rgba(15,27,45,.12); border-radius: 4px; font-family: "BIZ UDPGothic", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif; }
+    .v-msg { text-align: center; color: #555; font-size: 14px; padding: 60px 0; margin: 0; }
+    @media (max-width: 760px) {
+      .v-bar { flex-wrap: wrap; padding: 8px 10px; }
+      .v-bar h1 { display: none; }
+      .v-wrap { padding: 10px 6px; }
+      .v-btn.pri { margin-left: auto; }
+      .v-sp { display: none; }
+    }
+
     /* ---------- 印刷・PDF用の勤務表 ---------- */
     @media print {
       body > *:not(#printArea) { display: none !important; }
@@ -485,6 +508,21 @@
   </style>
 </head>
 <body class="is-admin">
+  <div id="viewer" hidden>
+    <header class="v-bar">
+      <a class="v-ib" href="../" aria-label="ホーム（ダッシュボード）へ" title="ホームへ"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg></a>
+      <h1>勤務表</h1>
+      <div class="v-nav">
+        <button class="v-ib" id="vPrev" aria-label="前の月">‹</button>
+        <b id="vMonth"></b>
+        <button class="v-ib" id="vNext" aria-label="次の月">›</button>
+      </div>
+      <button class="v-btn" id="vThis">今月</button>
+      <span class="v-sp"></span>
+      <button class="v-btn pri" id="vPrint"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><rect x="4" y="9" width="16" height="8" rx="2"/><path d="M7 14h10v7H7z"/></svg>印刷・PDF保存</button>
+    </header>
+    <div class="v-wrap" id="vWrap"><div class="v-paper" id="vPaper"></div></div>
+  </div>
   <div id="loginView" class="login-view" hidden>
     <div class="login-card">
       <h2>シフト管理　ログイン</h2>
@@ -782,7 +820,9 @@
     const DASH_API = 'https://script.google.com/macros/s/AKfycbwH4qejeiP6ShZtMjhiV9EGnJSBQxq2xxmyt4oFinl_rbnw8GkjtFZUOjv8VFJE7J8I/exec';
 
     const dayStr = () => { const t = new Date(); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`; };
-    function loadDashAuth() { try { const a = JSON.parse(localStorage.getItem('medash_auth') || 'null'); return a && a.day === dayStr() && a.role === '管理者' ? a : null; } catch (e) { return null; } }
+    /* ?view=1 で開いたときは「勤務表を見るだけ」の画面（管理者・使用者どちらも） */
+    const VIEW = new URLSearchParams(location.search).has('view');
+    function loadDashAuth() { try { const a = JSON.parse(localStorage.getItem('medash_auth') || 'null'); return a && a.day === dayStr() && (VIEW || a.role === '管理者') ? a : null; } catch (e) { return null; } }
     let AUTH = '';
     let USER = loadDashAuth();
     (() => {
@@ -806,7 +846,7 @@
             .then(j => {
               if (j.ok) { st.ok && st.ok(j.data); return; }
               const e = new Error(j.error || '処理できませんでした'); e.auth = j.auth;
-              if (j.auth) showLogin('ログインの有効期限が切れたか、管理者ではありません。もう一度ログインしてください');
+              if (j.auth) showLogin(VIEW ? 'ログインの有効期限が切れました。もう一度ログインしてください' : 'ログインの有効期限が切れたか、管理者ではありません。もう一度ログインしてください');
               else if (/^設定の確認が必要です/.test(j.error || '')) showLogin(j.error);
               st.ng && st.ng(e);
             })
@@ -832,12 +872,12 @@
         const r = await fetch(DASH_API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'login', loginId: id }) });
         const j = await r.json();
         if (!j.ok) throw new Error(j.error || 'ログインできませんでした');
-        if (j.data.role !== '管理者') throw new Error('シフト管理は管理者のみ利用できます');
+        if (!VIEW && j.data.role !== '管理者') throw new Error('シフト管理は管理者のみ利用できます');
         try { localStorage.setItem('medash_auth', JSON.stringify(j.data)); } catch (e) { /* noop */ }
         USER = j.data; AUTH = j.data.token;
         document.getElementById('loginView').hidden = true;
         setUserChip();
-        load(ym || thisYm(), false, true);
+        if (VIEW) viewLoad(); else load(ym || thisYm(), false, true);
       } catch (e) {
         msg.textContent = e.message === 'Failed to fetch' ? '通信できませんでした。電波を確認してください' : e.message;
         document.getElementById('loginId').value = '';
@@ -2178,6 +2218,73 @@
       setTimeout(() => window.print(), 80);
     }
 
+    /* ---------- 見るだけの画面（?view=1）：ダッシュボードから管理者・使用者が開く ---------- */
+    let VYM = '';
+    function initViewer() {
+      document.body.classList.add('viewmode');
+      document.title = '勤務表';
+      const lv = $('loginView');
+      lv.querySelector('h2').textContent = '勤務表　ログイン';
+      lv.querySelector('p').innerHTML = 'ダッシュボードと同じ <b>5桁のユーザー番号</b> を入力してください。ログインはその日のうちだけ有効です。';
+      $('viewer').hidden = false;
+      const q = new URLSearchParams(location.search).get('ym');
+      VYM = /^\d{4}-\d{2}$/.test(q || '') ? q : thisYm();
+      $('vPrev').onclick = () => { VYM = addMonth(VYM, -1); viewLoad(); };
+      $('vNext').onclick = () => { VYM = addMonth(VYM, 1); viewLoad(); };
+      $('vThis').onclick = () => { VYM = thisYm(); viewLoad(); };
+      $('vPrint').onclick = viewPrint;
+      window.addEventListener('resize', fitPaper);
+      if (!AUTH) { showLogin(''); return; }
+      viewLoad();
+    }
+    let viewSeq = 0;
+    function viewLoad() {
+      if (!VYM) VYM = thisYm();
+      const [y, m] = VYM.split('-').map(Number);
+      $('vMonth').textContent = `${y}年${m}月`;
+      $('vPrint').disabled = true;
+      history.length = 0;
+      window.history.replaceState(null, '', location.pathname + '?view=1&ym=' + VYM);
+      $('vPaper').innerHTML = '<p class="v-msg">読み込んでいます…</p>';
+      fitPaper();
+      const seq = ++viewSeq;
+      google.script.run
+        .withSuccessHandler(res => {
+          if (seq !== viewSeq) return;
+          app = res; app.shifts = app.shifts || {}; app.events = app.events || {}; app.holidays = app.holidays || {};
+          typeMap = Object.fromEntries((app.shiftTypes || []).map(t => [t.code, t]));
+          ym = VYM;
+          if (!res.exists) { $('vPaper').innerHTML = `<p class="v-msg">${y}年${m}月の勤務表は、まだ作られていません。</p>`; fitPaper(); return; }
+          $('vPaper').innerHTML = printSheetHtml(viewOpt());
+          $('vPrint').disabled = false;
+          fitPaper();
+        })
+        .withFailureHandler(e => {
+          if (seq !== viewSeq) return;
+          $('vPaper').innerHTML = `<p class="v-msg">${esc(e.message || '読み込めませんでした')}</p>`;
+        })
+        .getShiftView(VYM, AUTH);
+    }
+    const viewOpt = () => ({ who: 'all', paper: 'A4', counts: true, tasks: true, events: true, notes: !app.viewer });
+    /** スマホなど幅が狭いときは、用紙ごと縮めて全体を見せる */
+    function fitPaper() {
+      const p = $('vPaper'), w = $('vWrap');
+      if (!p || !w) return;
+      p.style.zoom = 1;
+      const avail = w.clientWidth - 12, need = p.offsetWidth;
+      p.style.zoom = need > avail ? (avail / need).toFixed(3) : 1;
+    }
+    function viewPrint() {
+      let area = $('printArea');
+      if (!area) { area = document.createElement('div'); area.id = 'printArea'; document.body.appendChild(area); }
+      area.innerHTML = '<style>@page { size: A4 landscape; margin: 7mm; }</style>' + printSheetHtml(viewOpt());
+      const old = document.title;
+      document.title = `勤務表_${VYM}`;
+      const done = () => { document.title = old; area.innerHTML = ''; window.removeEventListener('afterprint', done); };
+      window.addEventListener('afterprint', done);
+      setTimeout(() => window.print(), 80);
+    }
+
     /* ---------- CSV出力 ---------- */
     function openCsv() {
       const n = displayStaff().length, all = visibleStaff().length;
@@ -2282,7 +2389,7 @@
       $('reloadBtn').onclick = () => reload(false);
       document.addEventListener('visibilitychange', () => {
         // シートを見に行って戻ってきたときなど。変更が無ければ自動で最新にする
-        if (document.visibilityState === 'visible' && ym && Date.now() - lastLoadedAt > 20000) reload(true);
+        if (!VIEW && document.visibilityState === 'visible' && ym && Date.now() - lastLoadedAt > 20000) reload(true);
       });
       $('autoBtn').onclick = openAuto;
       $('autoCalc').onclick = calcAuto;
@@ -2447,7 +2554,7 @@
       });
       window.addEventListener('beforeunload', e => { if (history.length) { e.preventDefault(); e.returnValue = ''; } });
 
-      load(thisYm());
+      if (VIEW) initViewer(); else load(thisYm());
     });
   </script>
 </body>
