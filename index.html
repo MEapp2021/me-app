@@ -348,6 +348,10 @@ button.sync:hover{border-color:var(--accent);color:var(--ink)}
 .tkwarn2{display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;border:0;border-radius:10px;background:var(--yel-bg);color:var(--yel);font-size:13.5px;font-weight:700;text-align:left}
 .tkwarn2 svg{width:18px;height:18px;flex:none}.tkwarn2 b{margin-left:auto;text-decoration:underline}
 .staff{font-size:13px;color:var(--muted);margin:10px 0 0}.staff b{color:var(--ink)}
+.sheetbtn{display:flex;align-items:center;gap:10px;margin-top:14px;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);text-decoration:none;font-size:14px;font-weight:600}
+.sheetbtn svg{width:18px;height:18px;color:var(--accent);flex:none}.sheetbtn small{margin-left:auto;font-size:12px;font-weight:400;color:var(--muted)}
+.dr-b .sheetbtn{margin-top:0}
+@media (hover:hover){.sheetbtn:hover{border-color:var(--accent)}}
 /* ドロワー */
 #drawer .dr-bg{position:fixed;inset:0;background:rgba(10,17,28,.38);z-index:50;animation:fd .15s}
 #drawer .dr{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);z-index:51;background:var(--surface);display:flex;flex-direction:column;box-shadow:-12px 0 40px rgba(10,17,28,.18);animation:sl .18s ease-out}
@@ -734,7 +738,15 @@ function todayCard(map, s) {
       ${none ? `<button class="tkwarn2" data-act="sel" data-w="shift">${IC.alert}<span>担当割りがまだありません</span><b>割り当てる</b></button>` : ''}
       ${tk.length && !none ? `<div class="tkc">${tk.map(r => `<span class="${names(r).length ? '' : 'un'}"><i style="background:${esc(r['色'] || 'var(--accent)')}">${esc(r['略称'] || String(r['業務']).slice(0, 1))}</i>${esc(names(r).join('・') || '未割当')}</span>`).join('')}</div>` : ''}
       <p class="staff">出勤　技士 <b>${ce ?? '—'}</b>人・サポーター <b>${sp ?? '—'}</b>人</p>` : ''}
+    ${sheetLinkHtml()}
   </section>`;
+}
+
+/* 勤務表（PDF）を見るボタン：管理者・使用者どちらも。シフト管理の「見るだけ」の画面を開く */
+function sheetViewUrl() { return LINKS.shift && !/script\.google\.com/.test(LINKS.shift) ? LINKS.shift.replace(/#.*$/, '') + '?view=1' : ''; }
+function sheetLinkHtml() {
+  const u = sheetViewUrl();
+  return u ? `<a class="sheetbtn" href="${esc(u)}" target="_blank" rel="noopener">${IC.file}<span>勤務表を見る・印刷する</span><small>先月・翌月も</small></a>` : '';
 }
 
 /* ---- くわしい内容（ドロワー） ---- */
@@ -971,7 +983,7 @@ function shiftW(s) {
     </div>`;
   };
   const first = (tks.find(r => !names(r).length) || tks[0] || {})['業務'];
-  const body = `<div class="chips" style="margin-bottom:10px">${dates.map((d, i) => `<button class="${i === idx ? 'on' : ''}" data-act="shiftday" data-n="${i}">${d === today ? '今日' : '明日'} ${md(d)}（${wd(d)}）</button>`).join('')}</div>
+  const body = `${sheetLinkHtml()}<div class="chips" style="margin-bottom:10px">${dates.map((d, i) => `<button class="${i === idx ? 'on' : ''}" data-act="shiftday" data-n="${i}">${d === today ? '今日' : '明日'} ${md(d)}（${wd(d)}）</button>`).join('')}</div>
     ${tks.length && !assigned.length && ceWork ? `<div class="tkwarn"><span>⚠ ${d0(day, today)}の業務の担当割りがまだありません</span>${canEdit() && !ed ? `<button class="btn sm" data-act="tkedit" data-task="${esc(first)}" data-date="${esc(day)}">担当を割り当てる</button>` : ''}</div>` : ''}
     ${assigned.length ? `<div>${assigned.map(r => `<div class="tkrow">${badge(r['業務'])}
       <span><b>${esc(r['業務'])}</b>　<span class="who">${esc(r['担当'])}</span></span>
