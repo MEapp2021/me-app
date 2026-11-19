@@ -4,12 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="ME業務">
-<link rel="manifest" href="../manifest.webmanifest">
-<link rel="icon" href="../icon-192.png">
-<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="在庫管理">
 <meta name="theme-color" content="#0e5c66">
-<title>物品管理</title>
+<title>在庫管理</title>
 <script>try{var t=JSON.parse(localStorage.getItem('inv7_theme')||'"auto"');if(t!=='auto')document.documentElement.dataset.theme=t;}catch(e){}</script>
 <style>
 :root{
@@ -50,9 +47,7 @@ input,select,textarea{font:inherit;font-size:16px;color:var(--ink)}
 /* ヘッダー */
 .top{position:sticky;top:0;z-index:5;background:var(--head);color:var(--on-head);
   padding:calc(env(safe-area-inset-top,0px) + 9px) 14px 9px;display:flex;align-items:center;gap:10px}
-.top h1{font-size:17px;margin:0;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.top .icon svg{width:22px;height:22px;display:block}
-.top a.home{text-decoration:none;margin-left:-6px}
+.top h1{font-size:17px;margin:0;font-weight:700;flex:1}
 #sync{font-size:12px;opacity:.9}
 .top .icon{color:var(--on-head);width:36px;height:36px;border-radius:50%;font-size:18px;display:grid;place-items:center}
 .top .icon:active{background:rgba(255,255,255,.18)}
@@ -314,12 +309,12 @@ main.count-fit .howcount{margin-bottom:6px}
 #busy{position:fixed;inset:0;z-index:30;background:rgba(5,15,20,.25);display:grid;place-items:center}
 #busy div{background:var(--surface);color:var(--ink);padding:14px 20px;border-radius:12px;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,.2)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.acts2 .btn .sub{display:block;font-size:12px;font-weight:500;opacity:.85;margin-top:1px}
 </style>
 </head>
 <body>
 <header class="top">
-  <a class="icon home" href="../" aria-label="ホーム（ダッシュボード）へ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="M15 6l-6 6 6 6"/></svg></a>
-  <h1>物品管理</h1>
+  <h1>在庫管理</h1>
   <span id="sync"></span>
   <button class="icon" id="theme" data-act="theme"></button>
   <button class="who" id="who" data-act="logout" hidden></button>
@@ -331,7 +326,7 @@ main.count-fit .howcount{margin-bottom:6px}
 <script>
 /* ===== 設定 ===== */
 const API_URL = 'https://script.google.com/macros/s/AKfycbwKo_UPvrx4JmY58n-mXe0xoEYpQXxM1oIsixyP5K7QWtK2WuM5e83bAC2ayoczGi-0/exec';
-const VERSION = 'v8.1';
+const VERSION = 'v8.2';
 
 const app = document.getElementById('app');
 const store = {
@@ -431,6 +426,7 @@ async function drain() {
     if (e.net) { OB.busy = false; updateSync(); kick(8000); return; }   // 電波が戻るまで端末に残す
     OB.ops.shift(); saveOutbox();                                       // サーバーが断った操作は捨てて最新を取り直す
     toast('記録できませんでした：' + e.message);
+    if (op.action === 'resolve_alert') { forgetDone(op.payload.historyId); S.alerts = null; if (['home', 'alerts'].includes(S.view)) loadAlerts(true); }
     S.itemsLoaded = false;
   }
   OB.busy = false;
@@ -464,7 +460,7 @@ async function loadItems(quiet) {
 const loading = {};
 async function loadAlerts(quiet) {
   if (loading.alerts) return; loading.alerts = true;
-  try { const r = await call('get_alerts'); S.alerts = r.data || []; S.lateDays = r.lateDays; }
+  try { const r = await call('get_alerts'); S.alerts = (r.data || []).filter(a => !isDone(a.historyId)); S.lateDays = r.lateDays; }
   catch (e) { if (!quiet) toast(e.message); if (!S.alerts && !quiet) S.alerts = []; }
   loading.alerts = false;
   if (['home', 'alerts'].includes(S.view)) render();
@@ -594,7 +590,6 @@ async function doLogin(id) {
     S.itemsLoaded = false; S.alerts = null; S.orders = null;
     go('home'); loadItems(true); loadAlerts(true); if (isAdmin()) loadOrders();
     kick(0);
-    openCartFromLink();
   } catch (e) {
     if (S.view !== 'login') return;
     $('lh').textContent = e.server ? '番号が見つかりません。もう一度入力してください' : e.message;
@@ -1060,12 +1055,6 @@ async function formSave() {
 }
 
 /* ---- 発注カート（管理者） ---- */
-/* ダッシュボードから「…/stock/#cart」で開いたときは、ログイン後すぐにカートを開く */
-function openCartFromLink() {
-  if (location.hash !== '#cart') return;
-  history.replaceState(null, '', location.pathname + location.search);
-  if (isAdmin()) openCart();
-}
 async function openCart() {
   S.cart = null; go('cart');
   try {
@@ -1188,13 +1177,19 @@ async function histCancel() {
 const REASONS = {
   over: [['warranty', '保証品に変更', 'pri'], ['keep', '通常入庫で正しい', '']],
   count: [['out_missing', '出庫の記録漏れ', 'pri'], ['in_missing', '入庫の記録漏れ', ''], ['miscount', '前回の数え間違い', ''], ['other', 'その他・確認済み', '']],
-  late: [['receive', '入庫を記録', 'pri'], ['wait', '納品待ちを確認', ''], ['cancel', '発注をキャンセル', 'danger']]
+  late: [['received_add', '届いている|在庫に足す', 'pri'], ['received_only', '届いている|在庫は数え直し済み', ''], ['wait', '納品待ちを確認', ''], ['cancel', '発注をキャンセル', 'danger']]
 };
+// 確認ボタンを押したものは、サーバーへ送り終わるまで（＋少しの間）画面に出さない
+const DONE_KEEP = 30 * 60 * 1000;
+function doneMap() { const m = store.get('doneAlerts', {}), now = Date.now(); Object.keys(m).forEach(k => { if (now - m[k] > DONE_KEEP) delete m[k]; }); return m; }
+function isDone(h) { return !!doneMap()[h] || OB.ops.some(o => o.action === 'resolve_alert' && Number(o.payload.historyId) === Number(h)); }
+function markDone(h) { const m = doneMap(); m[h] = Date.now(); store.set('doneAlerts', m); }
+function forgetDone(h) { const m = doneMap(); delete m[h]; store.set('doneAlerts', m); }
 function renderAlerts() {
   if (!S.alerts) loadAlerts(false);
   const list = S.alerts || [];
   app.innerHTML = `${head(`要確認 ${S.alerts ? list.length + '件' : ''}`)}
-    <p class="muted" style="font-size:13px;margin:0 2px 10px">発注・入庫・出庫・棚卸しの記録が合わないものです。${isAdmin() ? '理由を選ぶと確認済みになります。' : '確認は管理者が行います。'}</p>
+    <p class="muted" style="font-size:13px;margin:0 2px 10px">発注・入庫・出庫・棚卸しの記録が合わないものです。${isAdmin() ? '理由を選ぶと確認済みになり、次からは出ません。続けて押せます。' : '確認は管理者が行います。'}</p>
     ${!S.alerts ? '<div class="empty-msg">読み込んでいます…</div>' : !list.length ? '<div class="empty-msg">確認が必要なものはありません</div>' : list.map(alertCard).join('')}`;
 }
 function alertCard(a) {
@@ -1205,21 +1200,29 @@ function alertCard(a) {
   else if (a.kind === 'count') { kind = '棚卸しで不一致'; cls = 'warn'; f1l = '帳簿の在庫'; f1 = a.before === null ? '－' : `${a.before}${U}`; f2l = `数えた数（${a.ts} ${a.user}）`; f2 = `${a.qty}${U}`; }
   else { kind = '入庫がない'; cls = 'warn'; f1l = `発注（${a.ts}${a.supplier ? ' ' + a.supplier : ''}）`; f1 = `${a.qty}${U}`; f2l = '経過・未着'; f2 = `${a.days}日・${a.remaining}${U}`;
     note = `発注から${S.lateDays || 14}日以上、入庫の記録がありません。`; }
-  const btns = isAdmin() ? `<div class="acts2">${REASONS[a.kind].map(([act, l, c]) => `<button class="btn ${c}" data-act="resolve" data-h="${a.historyId}" data-id="${a.itemId}" data-a="${act}">${l}</button>`).join('')}</div>` : '';
+  const btns = isAdmin() ? `<div class="acts2">${REASONS[a.kind].map(([act, l, c]) => `<button class="btn ${c}" data-act="resolve" data-h="${a.historyId}" data-id="${a.itemId}" data-a="${act}">${l.split('|').map((t, k) => k ? `<small class="sub">${t}</small>` : t).join('')}</button>`).join('')}</div>` : '';
   return `<div class="acard ${cls}"><span class="chip ${cls}" style="align-self:flex-start">${kind}</span>
     <div class="nm">${esc(a.itemName)}</div>
     <div class="facts num"><div class="fact"><span>${esc(f1l)}</span><b>${esc(f1)}</b></div><div class="fact"><span>${esc(f2l)}</span><b>${esc(f2)}</b></div></div>
     <div class="note">${esc(note)}</div>${btns}</div>`;
 }
-async function resolve(b) {
+function resolve(b) {
   const h = Number(b.dataset.h), id = b.dataset.id, act = b.dataset.a;
-  if (act === 'receive') { if (!itemById(id)) { toast('物品が見つかりません。一覧を更新してください'); return; } openStock(id, 'in'); return; }
+  const a = (S.alerts || []).find(x => x.historyId === h);
   if (act === 'cancel' && !confirm('この発注をキャンセルし、発注先へキャンセルのメールを送ります。よろしいですか？')) return;
-  const r = await blocking('記録しています…', () => call('resolve_alert', { historyId: h, itemId: id, action: act }));
-  if (!r) return;
-  S.alerts = (S.alerts || []).filter(a => a.historyId !== h);
-  toast('確認済みにしました'); render();
-  if (act === 'cancel' || act === 'warranty') { loadItems(false); S.orders = null; }
+  // 画面からはすぐ消し、記録は裏で送る（送信箱）
+  markDone(h);
+  S.alerts = (S.alerts || []).filter(x => x.historyId !== h);
+  const it = itemById(id);
+  if (it && a) {   // 在庫・未納の数を先に画面へ反映（サーバーの結果は後で取り直す）
+    if (act === 'received_add') { it.stock += a.remaining; it.orderedQuantity = Math.max(0, it.orderedQuantity - a.remaining); }
+    if (act === 'received_only' || act === 'cancel') it.orderedQuantity = Math.max(0, it.orderedQuantity - a.remaining);
+    if (act === 'in_missing' && a.before !== null) it.orderedQuantity = Math.max(0, it.orderedQuantity - Math.max(0, a.qty - a.before));
+  }
+  S.orders = null;
+  enqueue('resolve_alert', { historyId: h, itemId: id, action: act });
+  const L = { received_add: '入庫済みにしました（在庫に足しました）', received_only: '入庫済みにしました', cancel: 'キャンセルしました' };
+  toast(L[act] || '確認済みにしました'); render();
 }
 
 /* ---- 月次レポート（管理者） ---- */
@@ -1305,7 +1308,6 @@ window.addEventListener('offline', updateSync);
     S.items = store.get('items_' + S.user.role, []);
     OB.ops.forEach(o => o.local && applyLocal(o.local));
     go('home'); loadItems(true); loadAlerts(true); if (isAdmin()) loadOrders(); kick(0);
-    openCartFromLink();
   } else {
     store.del('session'); go('login');
   }
