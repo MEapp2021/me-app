@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="ME業務">
+<meta name="apple-mobile-web-app-title" content="医療ガス点検">
 <meta name="theme-color" content="#24456b">
-<link rel="manifest" href="../manifest.webmanifest">
-<link rel="icon" href="../icon-192.png">
-<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>医療ガス点検</title>
 <script>try{var t=JSON.parse(localStorage.getItem('mg_theme')||'"auto"');if(t!=='auto')document.documentElement.dataset.theme=t;}catch(e){}</script>
 <style>
@@ -50,9 +50,7 @@ button:disabled{opacity:.4;cursor:default}
 /* ヘッダー */
 .top{position:sticky;top:0;z-index:5;background:var(--head);color:var(--on-head);
   padding:calc(env(safe-area-inset-top,0px) + 9px) 12px 9px 14px;display:flex;align-items:center;gap:6px}
-.top h1{font-size:17px;margin:0;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-@media (max-width:420px){.top{gap:2px}.top .icon{width:32px}.top h1{font-size:16px}}
-.top a.home{display:grid;place-items:center;color:inherit;text-decoration:none;margin-left:-6px}
+.top h1{font-size:17px;margin:0;font-weight:700;flex:1;white-space:nowrap}
 #sync{font-size:12px;opacity:.9;white-space:nowrap}
 .top .icon{color:var(--on-head);width:36px;height:36px;border-radius:50%;display:grid;place-items:center}
 .top .icon svg{width:22px;height:22px;display:block}
@@ -193,6 +191,20 @@ h2{font-size:14px;margin:16px 2px 6px;color:var(--muted);font-weight:600}
 .cam{width:44px;height:44px;border-radius:10px;background:var(--alert);color:#fff;display:grid;place-items:center}
 .cam svg{width:22px;height:22px}
 
+.mailbox{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:10px}
+.mailbox b{display:block;font-size:15px;margin-bottom:6px}
+.mailbtn{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:2px solid var(--accent);color:var(--accent);background:var(--surface);border-radius:12px;padding:10px 12px;font-weight:700;font-size:15px;margin-top:6px}
+.mailbtn svg{width:22px;height:22px;flex:none}.mailbtn small{display:block;font-weight:500;color:var(--muted);font-size:12px}
+.mail-to{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin:10px 0}
+.mail-to span{color:var(--muted);font-size:13px}.mail-to div{font-weight:700;font-size:16px}
+.mail-sec{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:10px}
+.mail-sec>label{display:block;font-weight:700;font-size:14px;margin-bottom:6px;color:var(--muted)}
+.mail-sec input,.mail-sec textarea{width:100%;font:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;line-height:1.55}
+.mail-sec textarea{resize:vertical}
+.thumb.pick{outline:3px solid var(--accent);outline-offset:-3px}
+.thumb .ck{position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.9);border:2px solid var(--accent);color:var(--accent);font-weight:800;font-size:14px;line-height:20px;text-align:center}
+.thumb.pick .ck{background:var(--accent);color:var(--on-accent)}
+.thumb .del{position:absolute;top:4px;right:4px;width:26px;height:26px;border-radius:50%;background:rgba(10,20,30,.7);color:#fff;font-size:16px;line-height:26px;text-align:center}
 .photos{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:10px}
 .photos-h{display:flex;align-items:center;gap:8px;margin-bottom:6px}
 .photos-h b{flex:1;font-size:15px}
@@ -300,7 +312,6 @@ svg .fc{stroke:var(--muted);stroke-dasharray:3 4;stroke-width:2}
 </head>
 <body>
 <header class="top">
-  <a class="icon home" href="../" aria-label="ホーム（ダッシュボード）へ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></a>
   <h1>医療ガス点検</h1>
   <span id="sync"></span>
   <button class="icon" id="trendBtn" data-act="trend" aria-label="残量の推移" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M4 16l5-5 4 3 7-8"/><path d="M15 6h5v5"/></svg></button>
@@ -542,7 +553,7 @@ function render() {
   document.getElementById('trendBtn').hidden = !S.user || ['trend', 'who'].includes(S.view);
   document.getElementById('logBtn').hidden = !S.user || ['log', 'who'].includes(S.view);
   app.className = '';
-  ({ url: renderUrl, who: renderWho, home: renderHome, entry: renderEntry, month: renderMonth, trend: renderTrend, log: renderLog })[S.view]();
+  ({ url: renderUrl, who: renderWho, home: renderHome, entry: renderEntry, month: renderMonth, trend: renderTrend, log: renderLog, mail: renderMail })[S.view]();
   updateSync();
 }
 
@@ -681,6 +692,11 @@ document.getElementById('photoInput').addEventListener('change', async ev => {
   const f = ev.target.files && ev.target.files[0];
   ev.target.value = '';
   if (!f) return;
+  if (S.view === 'mail' && S.mail) {   // メール画面で撮った写真はメールに付ける
+    try { const data = await compress(f); S.mail.shots.push({ key: 'm' + Date.now(), data }); renderMail(); }
+    catch (e) { toast(e.message); }
+    return;
+  }
   try {
     const data = await compress(f);
     const it = S.data.items.find(i => i.item_id === S.photoTarget);
@@ -689,6 +705,70 @@ document.getElementById('photoInput').addEventListener('change', async ev => {
     if (S.view === 'entry') renderEntry();
   } catch (e) { toast(e.message); }
 });
+
+/* ---- 写真付きメール（v3.8） ---- */
+const MAILICON = SVG('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/>');
+function mailsFor(loc) { return ((S.data && S.data.mails) || []).filter(t => !t.location || t.location === loc); }
+function fillMail(text, t) {
+  const [y, m, d] = S.date.split('-').map(Number);
+  const now = new Date();
+  const map = { '宛先名': t.to_name, '日付': `${m}月${d}日（${'日月火水木金土'[new Date(y, m - 1, d).getDay()]}）`, '時刻': `${now.getHours()}:${pad(now.getMinutes())}`, '場所': S.loc || t.location, '点検者': S.user };
+  return String(text || '').replace(/\{(宛先名|日付|時刻|場所|点検者)\}/g, (_, k) => map[k] || '');
+}
+function openMail(id) {
+  const t = mailsFor(S.loc).find(x => String(x.id) === String(id));
+  if (!t) { toast('メールの文面が見つかりません'); return; }
+  if (S.active) { commitNum(S.active); S.active = null; }
+  S.note = (document.getElementById('f-note') || {}).value ?? S.note;
+  saveNoteIfChanged();
+  S.mail = { t, id: 'mail_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), subject: fillMail(t.subject, t), body: fillMail(t.body, t), picks: new Set(), shots: [], sending: false };
+  S.view = 'mail'; render(); window.scrollTo(0, 0);
+}
+function renderMail() {
+  const M2 = S.mail, t = M2.t;
+  const old = photosFor(S.loc);
+  const n = M2.shots.length + M2.picks.size;
+  app.innerHTML = `
+    <div class="entry-head"><button class="back" data-act="mailBack">‹ 戻る</button><h2>メールで連絡</h2></div>
+    <div class="mail-to"><span>宛先</span><div>${esc(t.to_name)}</div><span>${esc(t.to)}${t.cc ? '　CC：' + esc(t.cc) : ''}</span></div>
+    <section class="photos">
+      <div class="photos-h"><b>添付する写真（${n}枚）</b><button class="addpic" data-act="mailShot">${CAM}写真を撮る</button></div>
+      ${M2.shots.length ? `<div class="thumbs">${M2.shots.map(p => `<div class="thumb"><img src="data:image/jpeg;base64,${p.data}" alt=""><button class="del" data-act="mailDel" data-k="${p.key}" aria-label="この写真を外す">×</button><span>今撮った写真</span></div>`).join('')}</div>` : ''}
+      ${old.length ? `<p class="muted" style="font-size:13px;margin:8px 0 6px">今日この場所で撮った写真から選ぶこともできます（タップで選ぶ）</p>
+        <div class="thumbs">${old.map(p => `<button class="thumb ${M2.picks.has(p.key) ? 'pick' : ''}" data-act="mailPick" data-k="${esc(p.key)}">
+          <img ${p.src ? `src="${p.src}"` : `data-fid="${esc(p.file_id)}" ${THUMBS[p.file_id] && THUMBS[p.file_id] !== 'loading' ? `src="${THUMBS[p.file_id]}"` : ''}`} alt="">
+          <i class="ck">${M2.picks.has(p.key) ? '✓' : ''}</i><span>${esc(p.name)}</span></button>`).join('')}</div>` : ''}
+      ${!n && !old.length ? '<p class="muted" style="font-size:13px;margin:0">「写真を撮る」で撮影してください。</p>' : ''}
+    </section>
+    <div class="mail-sec"><label for="m-subj">件名</label><input id="m-subj" value="${esc(M2.subject)}"></div>
+    <div class="mail-sec"><label for="m-body">本文（送る前に直せます）</label><textarea id="m-body" rows="${Math.max(10, M2.body.split('\n').length + 3)}">${esc(M2.body)}</textarea></div>
+    <div class="savebar"><button data-act="mailSend" ${M2.sending ? 'disabled' : ''}>${M2.sending ? '送信しています…' : `この内容で送信する（写真${n}枚）`}</button></div>`;
+  app.style.paddingBottom = '96px';
+  app.querySelectorAll('img[data-fid]').forEach(img => { if (!img.src) loadThumb(img.dataset.fid); });
+}
+async function sendMail() {
+  const M2 = S.mail; if (!M2 || M2.sending) return;
+  M2.subject = document.getElementById('m-subj').value.trim();
+  M2.body = document.getElementById('m-body').value.trim();
+  if (!M2.subject || !M2.body) { toast('件名と本文を入れてください'); return; }
+  const old = photosFor(S.loc);
+  const photos = M2.shots.map(p => ({ data: p.data }))
+    .concat(old.filter(p => M2.picks.has(p.key)).map(p => p.file_id ? { file_id: p.file_id } : { data: (p.src || '').split(',')[1] }).filter(p => p.file_id || p.data));
+  if (!photos.length && !confirm('写真が付いていません。写真なしで送りますか？')) return;
+  if (!confirm(`${M2.t.to_name} へメールを送信します。よろしいですか？`)) return;
+  if (navigator.onLine === false) { toast('電波がありません。電波の良い場所で送ってください'); return; }
+  M2.sending = true; renderMail();
+  try {
+    await call('send_mail', { id: M2.id, template_id: M2.t.id, user: S.user, date: S.date, location: S.loc, subject: M2.subject, body: M2.body, photos });
+    const to = M2.t.to_name;
+    S.mail = null; S.view = 'entry'; render(); window.scrollTo(0, 0);
+    toast(`${to} へ送信しました`);
+    load(true);
+  } catch (e) {
+    M2.sending = false; if (S.view === 'mail') renderMail();
+    toast(e.server ? '送信できませんでした：' + e.message : '通信できませんでした。電波の良い場所でもう一度「送信」を押してください');
+  }
+}
 
 /* ---- 入力画面 ---- */
 /* 区分の中の項目を No1・No2 … ごとにまとめる（例：A棟 予備酸素 → No1 の送気圧力・使用側・ボンベ残量・センサー → No2 … → 共通）
@@ -897,6 +977,7 @@ function renderEntry() {
         ${p.pending ? '<em>未送信</em>' : ''}<span>${esc(p.name)}</span></button>`).join('')}</div>`
         : '<p class="muted" style="font-size:13px;margin:0">見た目に異常があれば撮影してください。✗ を付けた項目には撮影ボタンが出ます。</p>'}
     </section>
+    ${mailsFor(S.loc).length ? `<section class="mailbox"><b>メールで連絡</b>${mailsFor(S.loc).map(t => `<button class="mailbtn" data-act="mailOpen" data-t="${t.id}">${MAILICON}<span>${esc(t.label)}<small>${esc(t.to_name)}へ写真付きで送る</small></span></button>`).join('')}</section>` : ''}
     <div class="notebox"><textarea id="f-note" rows="2" placeholder="備考（任意）例：窒素ボンベ交換、吸引装置フィルター交換">${esc(S.note)}</textarea></div>
     ${S.active ? keypadSheet() : `<div class="savebar"><button class="done" data-act="leave">一覧へ戻る（登録 ${reg}/${daily.length}）</button></div>`}`;
   keepActiveVisible();
@@ -1213,6 +1294,15 @@ document.addEventListener('click', ev => {
   }
 
   else if (act === 'entry') openEntry(b.dataset.loc);
+  else if (act === 'mailOpen') openMail(b.dataset.t);
+  else if (act === 'mailBack') {
+    if ((S.mail.shots.length || S.mail.picks.size) && !confirm('メールは送られていません。戻りますか？')) return;
+    S.mail = null; S.view = 'entry'; render();
+  }
+  else if (act === 'mailShot') { keepMailText(); document.getElementById('photoInput').click(); }
+  else if (act === 'mailDel') { keepMailText(); S.mail.shots = S.mail.shots.filter(p => p.key !== b.dataset.k); renderMail(); }
+  else if (act === 'mailPick') { keepMailText(); const k = b.dataset.k; S.mail.picks.has(k) ? S.mail.picks.delete(k) : S.mail.picks.add(k); renderMail(); }
+  else if (act === 'mailSend') sendMail();
   else if (act === 'leave' || act === 'save') leaveEntry();
   else if (act === 'bool') {
     if (S.active) { commitNum(S.active); S.active = null; }
@@ -1295,6 +1385,11 @@ document.addEventListener('click', ev => {
     toast(`${loc} を保存しました`);
   }
 });
+function keepMailText() {
+  if (!S.mail) return;
+  const a = document.getElementById('m-subj'), c = document.getElementById('m-body');
+  if (a) S.mail.subject = a.value; if (c) S.mail.body = c.value;
+}
 document.addEventListener('input', ev => { if (ev.target.id === 'f-note') { S.note = ev.target.value; S.dirty = true; } });
 /* 備考は書き終えて欄から離れたときに登録 */
 document.addEventListener('change', ev => {
