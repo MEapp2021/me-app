@@ -93,6 +93,19 @@ main.with-sheet{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 360px)}
 .swap .sw-b .go{background:var(--accent);color:var(--on-accent);flex:1}
 .swap .sw-b .skip{background:var(--surface);border:1px solid var(--line);color:var(--muted)}
 .swap .sw-b button:disabled{opacity:.5}
+.swap .when{display:inline-block;font-size:12px;font-weight:800;padding:1px 8px;border-radius:99px;background:var(--accent);color:var(--on-accent);margin-right:6px;vertical-align:1px}
+.swap.trouble{background:var(--alert-bg);border-color:var(--alert)}
+.swap.trouble .sw-t svg,.swap.trouble summary{color:var(--alert)}
+.swap.trouble .when,.swap.trouble .sw-b .go{background:var(--alert);color:#fff}
+.swap.none{background:var(--surface);border-color:var(--line);color:var(--muted);font-size:14px;display:flex;gap:8px;align-items:center}
+.swap.none svg{width:20px;height:20px;flex:none;color:var(--ok)}
+.trbl{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;height:44px;margin:0 0 10px;border-radius:12px;border:1.5px solid var(--alert);color:var(--alert);background:var(--surface);font-weight:700;font-size:15px}
+.trbl svg{width:20px;height:20px}
+.trbl-box{background:var(--surface);border:1.5px solid var(--alert);border-radius:14px;padding:11px 12px;margin:0 0 10px}
+.trbl-box p{margin:0 0 8px;font-weight:700}
+.trbl-box .opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.trbl-box .opts button{height:52px;border-radius:12px;background:var(--alert);color:#fff;font-weight:800;font-size:15px}
+.trbl-box .cancel{display:block;margin:8px auto 0;color:var(--muted);font-size:14px;padding:6px 12px}
 h2{font-size:14px;margin:16px 2px 6px;color:var(--muted);font-weight:600}
 
 /* 病棟ラウンド：横4つ */
@@ -628,29 +641,56 @@ function bgRow(loc, its) {
 /* ---- センサーカセットの入れ替え提案（サーバーの カセット入替.gs が作る） ---- */
 const SWAP_IC = SVG('<path d="M7 7h11l-3-3M17 17H6l3 3"/>');
 function swapCards(loc) {
-  const list = ((S.data && S.data.swaps) || []).filter(x => !loc || x.a === loc || x.b === loc);
-  if (!list.length || S.date !== todayStr()) return '';
-  return list.map((x, k) => {
-    const idx = S.data.swaps.indexOf(x);
-    const rows = (x.devices || []).map(d => `<span>${esc(d.loc)}</span><span><b>${d.spare ? '測定なし（保管）' : `1日約${esc(d.perDay)}回`}</b>・残${esc(d.remain)}回・期限${esc(md(d.expiry))}${d.waste > 0 ? `（このままだと約${esc(d.waste)}回余る）` : ''}${d.rateFrom === '溶液パック' ? '　※溶液パックの減り方から計算' : ''}</span>`).join('');
-    return `<div class="swap">
-      <div class="sw-t">${SWAP_IC}<span>${esc(x.message)}</span></div>
+  if (!S.data || S.date !== todayStr()) return '';
+  const all = S.data.swaps || [];
+  const list = all.filter(x => !loc || x.a === loc || x.b === loc);
+  if (!list.length) return loc ? '' : `<div class="swap none">${SVG('<path d="M5 12.5l4.5 4.5L19 7.5"/>')}<span>今日・明日に行うセンサーカセット・溶液パックの交換はありません</span></div>`;
+  return list.map(x => {
+    const idx = all.indexOf(x);
+    const rows = (x.devices || []).map(d => `<span>${esc(d.loc)}</span><span><b>${d.spare ? '測定なし（保管）' : d.perDay != null ? `1日約${esc(d.perDay)}回` : '使用ペース不明'}</b>・残約${esc(d.remain)}回・期限${esc(md(d.expiry))}${d.waste > 0 ? `（このままだと約${esc(d.waste)}回余る）` : ''}${d.last ? `・記録 ${esc(d.last)}` : ''}</span>`).join('');
+    return `<div class="swap ${x.type === 'trouble' ? 'trouble' : ''}">
+      <div class="sw-t">${x.type === 'trouble' ? WARN_IC : SWAP_IC}<span><i class="when">${esc(x.whenLabel || '今日')}</i>${esc(x.message)}</span></div>
       <div class="sw-n">${esc(x.note)}</div>
-      <details><summary>計算のもと</summary><div class="sw-d">${rows}</div>
-        <p style="margin:6px 0 0">直近2日間の残回数の減り方から、1日の測定回数を出しています。</p></details>
-      <div class="sw-b"><button class="go" data-act="swapDone" data-i="${idx}">${esc(x.doneLabel || '対応した')}</button><button class="skip" data-act="swapSkip" data-i="${idx}">見送る</button></div>
+      ${rows ? `<details><summary>計算のもと</summary><div class="sw-d">${rows}</div>
+        <p style="margin:6px 0 0">最新の記録と、直近2日間の残回数の減り方から計算しています。</p></details>` : ''}
+      <div class="sw-b"><button class="go" data-act="swapDone" data-i="${idx}">実施済み</button></div>
     </div>`;
   }).join('');
+}
+const WARN_IC = SVG('<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17.5v.5"/>');
+function troubleBox() {
+  if (S.date !== todayStr()) return '';
+  if (S.trbl !== S.loc) return `<button class="trbl" data-act="trouble">${WARN_IC}トラブルで交換する</button>`;
+  return `<div class="trbl-box"><p>${esc(S.loc)}：トラブルで交換するものを選んでください</p>
+    <div class="opts"><button data-act="troublePick" data-part="SC">センサー<br>カセット</button><button data-act="troublePick" data-part="SOL">溶液パック</button></div>
+    <button class="cancel" data-act="troubleCancel">やめる</button></div>`;
+}
+async function troubleRecord(part, btn) {
+  const name = part === 'SOL' ? '溶液パック' : 'センサーカセット';
+  if (!confirm(`${S.loc}の${name}を、トラブルで交換します。\n記録して、何を入れるとよいかを表示しますか？`)) return;
+  btn.closest('.trbl-box').querySelectorAll('button').forEach(b => b.disabled = true);
+  try {
+    const r = await call('swapTrouble', { loc: S.loc, part, user: S.user });
+    S.data.swaps = r.swaps || [];
+    store.set('cache', S.data);
+    S.trbl = null;
+    toast('記録しました。上に出た案内のとおり交換してください');
+    render(); window.scrollTo(0, 0);
+  } catch (e) {
+    toast(e.server ? e.message : '通信できません。電波のよい所でもう一度押してください');
+    render();
+  }
 }
 async function swapRecord(i, kind, btn) {
   const x = S.data && S.data.swaps && S.data.swaps[i];
   if (!x) return;
   btn.closest('.swap').querySelectorAll('button').forEach(b => b.disabled = true);
   try {
-    const r = await call('swapDone', { a: x.a, b: x.b, type: x.type, kind, user: S.user, saved: x.saved, detail: x.message + '／' + (x.text || '') });
+    const r = await call('swapDone', { id: x.id, a: x.a, b: x.b, type: x.type, part: x.part, kind: 'done', user: S.user, saved: x.saved, detail: x.message + '／' + (x.text || '') });
     S.data.swaps = r.swaps || [];
     store.set('cache', S.data);
-    toast(kind === 'skip' ? 'この提案は見送りました' : `記録しました。${x.a}と${x.b}のセンサーカセットの期限と残回数を入力してください`);
+    const locs = [x.a, x.b].filter(Boolean).join('と');
+    toast(`記録しました。${locs}の${x.part === 'SOL' ? '溶液パック' : 'センサーカセット'}の期限と残回数を入力してください`);
   } catch (e) {
     toast(e.server ? e.message : '通信できません。電波のよい所でもう一度押してください');
   }
@@ -775,6 +815,7 @@ function renderEntry() {
     <div class="entry-head"><button class="back" data-act="leave">‹ 一覧</button><h2>${esc(S.loc)}<small>${esc(its[0].model)}</small></h2></div>
     <p class="sub-head">${fmtJP(S.date)}　${esc(S.user)}　<span class="ghost">入力するとすぐ登録されます。薄い文字は前回の記録</span></p>
     ${swapCards(S.loc)}
+    ${troubleBox()}
     ${html}
     <section class="photos">
       <div class="photos-h"><b>写真</b><button class="addpic" data-act="photo" data-loc="${esc(S.loc)}" data-id="">${CAM}写真を追加</button></div>
@@ -1138,7 +1179,9 @@ document.addEventListener('click', ev => {
   }
   else if (act === 'who') { S.view = 'who'; render(); }
   else if (act === 'swapDone') swapRecord(+b.dataset.i, 'done', b);
-  else if (act === 'swapSkip') swapRecord(+b.dataset.i, 'skip', b);
+  else if (act === 'trouble') { S.trbl = S.loc; render(); }
+  else if (act === 'troubleCancel') { S.trbl = null; render(); }
+  else if (act === 'troublePick') troubleRecord(b.dataset.part, b);
   else if (act === 'photo') {
     const n = document.getElementById('f-note'); if (n) S.note = n.value;
     PT.loc = b.dataset.loc; PT.id = b.dataset.id || '';
