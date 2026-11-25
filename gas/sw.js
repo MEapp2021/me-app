@@ -3,7 +3,7 @@
  *   → ネットがあるときは常に最新版、ないときは前回の画面で起動
  * ・GASへの通信（記録の送信）はここでは扱わない（送信箱が担当）
  * 画面のファイルを大きく変えたときは VERSION を上げる */
-const VERSION = 'mg-me-v1';
+const VERSION = 'mg-me-v2';
 const FILES = ['./', './index.html'];
 
 self.addEventListener('install', e => {
@@ -11,7 +11,7 @@ self.addEventListener('install', e => {
 });
 
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k))))
+  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k.startsWith('mg-') && k !== VERSION).map(k => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 

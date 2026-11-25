@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>送信機チェック</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ME業務">
+<meta name="theme-color" content="#0b7a75">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icon-192.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+/* VOICE: clinical, calm, fast — a ward-round tool
+   IDEA: the telemetry channel tag + phone keypad, or the ward's transmitter board
+   PICTURE: big channel readout, keypad / ward tiles, one inspection card
+   COLOUR and TYPE: white or night ink, teal accent; status colours only for status. system Japanese fonts (works offline)
+   LAYOUT: one column on phone; input left, inspection card right on wide screens */
+:root{color-scheme:light dark;--ff:"Hiragino Sans","Yu Gothic UI","Meiryo",system-ui,sans-serif;--bg:light-dark(#f4f6f7,#0f1214);--card:light-dark(#fff,#181c1f);--ink:light-dark(#14191c,#e9eef0);--mut:light-dark(#5f6b72,#97a3aa);--line:light-dark(#dfe5e8,#2a3034);--ac:light-dark(#0b7a75,#3cc2b9);--acI:light-dark(#fff,#062b29);--key:light-dark(#eef2f4,#22282b);
+--use:light-dark(#1f6fd1,#5aa9ff);--keep:light-dark(#1d8a4e,#4fd18b);--repair:light-dark(#c46a00,#ffaa4d);--lost:light-dark(#c62828,#ff6b62);--other:light-dark(#66727a,#a5b1b8);--warnBg:light-dark(#fdecea,#3a1d1b)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--ff);overflow-x:clip}
+.num{font-family:var(--ff);font-variant-numeric:tabular-nums}
+header{display:flex;align-items:center;gap:10px;padding:10px max(4vw,14px);background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+header h1{font-size:18px;margin:0;font-weight:700;flex:1;white-space:nowrap}
+#sync{font-size:12px;font-weight:600;padding:4px 10px;border-radius:99px;background:var(--key);color:var(--mut);white-space:nowrap;border:0;cursor:pointer}
+#sync.wait{background:light-dark(#fff4e0,#3a2a12);color:var(--repair)}#sync.off{background:var(--warnBg);color:var(--lost)}
+nav{display:flex;gap:4px;background:var(--key);padding:4px;border-radius:12px}
+nav button,.seg button{border:0;background:none;color:var(--mut);font:600 15px var(--ff);padding:8px 14px;border-radius:9px;min-height:40px;cursor:pointer}
+nav button[aria-pressed=true],.seg button[aria-pressed=true]{background:var(--card);color:var(--ink);box-shadow:0 1px 3px #0002}
+.seg{display:inline-flex;background:var(--key);border-radius:11px;padding:3px}
+.seg button{min-height:36px;padding:6px 12px}
+main{max-width:1040px;margin:0 auto;padding:14px max(4vw,14px) 70px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+.grid{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:14px;align-items:start}
+@media(max-width:760px){.grid{grid-template-columns:minmax(0,1fr)}}
+#chIn{width:100%;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);font:700 44px/1 var(--ff);text-align:center;padding:10px;letter-spacing:.04em}
+#chIn:focus{outline:none;border-color:var(--ac)}
+.pad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.pad button{min-height:56px;border:0;border-radius:12px;background:var(--key);color:var(--ink);font:600 26px var(--ff);cursor:pointer}
+.pad button:active{background:var(--line)}
+.pad .fn{font:600 15px var(--ff);color:var(--mut)}
+.lbl{font-size:13px;color:var(--mut);margin:0 0 4px;font-weight:600}
+.res h2{margin:0;font:700 34px/1.1 var(--ff);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tag{font:600 12px var(--ff);padding:3px 9px;border-radius:99px;background:var(--key);color:var(--mut);white-space:nowrap}
+.tag.warn{background:var(--warnBg);color:var(--lost)}.tag.ok{background:light-dark(#e3f4f2,#13302e);color:var(--ac)}
+.meta{color:var(--mut);font-size:14px;margin:6px 0 12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+select,input[type=text],input[type=date],textarea{font:16px var(--ff);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 12px;min-height:44px}
+select:focus-visible,input:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.f{flex:1 1 160px}.w100{width:100%}
+.sts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+@media(max-width:420px){.sts{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.sts button{min-height:50px;border:2px solid var(--line);background:var(--card);border-radius:12px;font:700 15px var(--ff);color:var(--ink);cursor:pointer}
+.sts button[aria-pressed=true]{color:#fff;border-color:transparent}
+:root[data-theme=dark] .sts button[aria-pressed=true]{color:#0b0d0e}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) .sts button[aria-pressed=true]{color:#0b0d0e}}
+.sts [data-s=use][aria-pressed=true]{background:var(--use)}.sts [data-s=keep][aria-pressed=true]{background:var(--keep)}.sts [data-s=repair][aria-pressed=true]{background:var(--repair)}.sts [data-s=lost][aria-pressed=true]{background:var(--lost)}.sts [data-s=other][aria-pressed=true]{background:var(--other)}
+.sec{margin-top:12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{min-height:42px;padding:6px 14px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:99px;font:600 15px var(--ff);cursor:pointer}
+.chips button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chips button.bad[aria-pressed=true]{background:var(--lost);border-color:var(--lost);color:#fff}
+#save{width:100%;min-height:56px;margin-top:14px;border:0;border-radius:14px;background:var(--ac);color:var(--acI);font:700 18px var(--ff);cursor:pointer}
+#save:disabled{opacity:.35;cursor:default}
+.btn{min-height:44px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:8px 14px;font:600 15px var(--ff);cursor:pointer}
+.btn.pri{background:var(--ac);border-color:var(--ac);color:var(--acI)}
+.btn.sm{min-height:34px;padding:4px 10px;font-size:13px}
+.chk{display:flex;gap:6px;align-items:center;font-size:14px;color:var(--mut);margin-top:8px}
+.chk input{width:20px;height:20px}
+h3{font-size:16px;margin:22px 0 8px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;color:var(--mut);font-weight:600;font-size:13px;border-bottom:1px solid var(--line);padding:6px 8px;white-space:nowrap}
+td{border-bottom:1px solid var(--line);padding:8px;vertical-align:middle}
+td.r,th.r{text-align:right}.nw{white-space:nowrap}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:1px;background:var(--other)}
+.d-use{background:var(--use)}.d-keep,.d-idle{background:var(--keep)}.d-repair{background:var(--repair)}.d-lost{background:var(--lost)}
+.abn{color:var(--lost);font-weight:600}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:6px;margin-top:10px;max-height:420px;overflow:auto;padding:2px}
+.tile{position:relative;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:8px 6px 6px;text-align:center;cursor:pointer;min-height:62px;color:var(--ink);font:inherit}
+.tile b{display:block;font:700 18px var(--ff)}
+.tile small{font-size:11px;color:var(--mut)}
+.tile::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;border-radius:10px 10px 0 0;background:var(--line)}
+.tile.s-use::before{background:var(--use)}.tile.s-keep::before{background:var(--keep)}.tile.s-repair::before{background:var(--repair)}.tile.s-lost::before{background:var(--lost)}.tile.s-other::before{background:var(--other)}
+.tile.done{background:light-dark(#e3f4f2,#13302e);border-color:transparent}
+.tile .mk{position:absolute;right:4px;bottom:2px;font-size:10px;color:var(--mut)}
+.tile .ok{position:absolute;left:5px;bottom:2px;font-size:12px;color:var(--ac);font-weight:700}
+.prog{height:8px;background:var(--key);border-radius:99px;overflow:hidden;margin-top:8px}.prog i{display:block;height:100%;background:var(--ac)}
+.kpi{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:12px 0}
+.kpi div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.kpi b{display:block;font:700 26px/1.1 var(--ff)}.kpi span{font-size:13px;color:var(--mut)}
+@media(max-width:640px){.kpi{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.bars div{display:grid;grid-template-columns:7em minmax(0,1fr) 3em;gap:8px;align-items:center;font-size:14px;margin:4px 0}
+.bars i{display:block;height:12px;border-radius:6px;background:var(--lost)}
+.chipl{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.chip{display:inline-flex;align-items:center;gap:4px;background:var(--key);border-radius:99px;padding:4px 6px 4px 12px;font-size:14px}
+.chip button{border:0;background:none;color:var(--mut);font-size:16px;width:28px;height:28px;border-radius:50%;cursor:pointer}
+.empty{color:var(--mut);font-size:14px;padding:10px 0}
+.scroll{overflow-x:auto}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(140px);background:var(--ink);color:var(--bg);padding:12px 16px;border-radius:12px;font-weight:600;transition:transform .2s;z-index:9;display:flex;gap:12px;align-items:center;max-width:92vw}
+#toast.on{transform:translateX(-50%)}
+#toast span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#toast button{background:none;border:1px solid currentColor;color:inherit;border-radius:8px;padding:4px 10px;font:600 14px var(--ff);cursor:pointer;flex:none}
+@media(prefers-reduced-motion:reduce){#toast{transition:none}}
+textarea{width:100%;min-height:90px}
+[hidden]{display:none!important}
+#home{font-size:28px;line-height:1;text-decoration:none;color:var(--mut);padding:0 4px}
+#whoBtn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;font:600 13px var(--ff);padding:5px 12px;min-height:34px;cursor:pointer;white-space:nowrap;max-width:9em;overflow:hidden;text-overflow:ellipsis}
+.dlg{position:fixed;inset:0;background:#0008;z-index:20;display:grid;place-items:center;padding:16px}
+.dlgIn{background:var(--card);border-radius:18px;padding:18px;width:min(520px,100%);max-height:90vh;overflow:auto}
+.dlgIn h2{font-size:18px;margin:0}
+.names{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.names button{min-height:52px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;font:600 16px var(--ff);cursor:pointer}
+.names button[aria-pressed=true]{background:var(--ac);color:var(--acI);border-color:var(--ac)}
+@media(max-width:600px){table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:8px;border-bottom:1px solid var(--line)}.stack td{display:flow-root;border:0;padding:2px 0;padding-inline-start:6.5em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:6em;margin-inline-start:-6.5em;color:var(--mut)}.stack td:empty{display:none}
+header{gap:6px;flex-wrap:wrap}header h1{font-size:16px}nav{width:100%}nav button{flex:1;padding:6px}.pad button{min-height:48px}#chIn{font-size:36px;padding:8px}.pad{gap:6px}main{padding-top:10px}}
+.dlg{position:fixed;inset:0;background:var(--bg);z-index:20;overflow:auto}
+.dlg.dim{background:#000c;display:grid;place-items:center;padding:16px}
+.login{max-width:360px;margin:0 auto;padding:max(8vh,24px) 18px 24px;text-align:center}
+.login h2{font-size:22px;margin:0 0 4px}
+.dots{display:flex;justify-content:center;gap:14px;margin:22px 0 8px}
+.dots i{width:16px;height:16px;border-radius:50%;border:2px solid var(--mut)}
+.dots i.on{background:var(--ink);border-color:var(--ink)}
+#lErr{min-height:24px;color:var(--lost);font-weight:600;font-size:14px}
+.mv{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+.mv .btn{flex:1 1 120px}
+.tile .od{position:absolute;right:5px;top:6px;width:8px;height:8px;border-radius:50%;background:var(--lost)}
+.legend{font-size:12px;color:var(--mut);margin-top:8px}
+.now h4{margin:14px 0 6px;font-size:14px}.now h4:first-child{margin-top:0}
+.qrBox{position:relative;background:#000;border-radius:14px;overflow:hidden;aspect-ratio:3/4;max-height:70vh;width:min(420px,100%)}
+.qrBox video{width:100%;height:100%;object-fit:cover}
+.qrBox::after{content:"";position:absolute;inset:22%;border:3px solid #fff;border-radius:12px;box-shadow:0 0 0 999px #0006}
+#labels{background:#fff;color:#000;display:block}
+.lbBar{position:sticky;top:0;background:var(--card);color:var(--ink);padding:10px 14px;display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--line)}
+.sheet{display:grid;grid-template-columns:repeat(4,45mm);gap:3mm;padding:8mm;width:max-content;margin:0 auto}
+.lb{border:1px dashed #999;border-radius:2mm;height:26mm;display:flex;align-items:center;gap:2mm;padding:2mm;break-inside:avoid}
+.lb svg{width:20mm;height:20mm;flex:none}
+.lb b{display:block;font:700 7mm/1 var(--ff)}.lb small{font-size:2.6mm}
+@media print{body>*:not(#labels){display:none!important}#labels{position:static;overflow:visible}.lbBar{display:none}.sheet{padding:0}}
+</style>
+<script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
+</head>
+<body>
+<header>
+  <a href="../" id="home" aria-label="ME業務アプリに戻る">‹</a>
+  <h1>送信機チェック</h1>
+  <button id="whoBtn" title="ログイン中の人">—</button>
+  <button id="sync" title="保存の状態">読み込み中</button>
+  <nav>
+    <button data-v="check" aria-pressed="true">点検</button>
+    <button data-v="report" aria-pressed="false">集計</button>
+    <button data-v="set" aria-pressed="false">設定</button>
+  </nav>
+</header>
+
+<main>
+<section id="v-check">
+  <div class="grid">
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <div class="seg" id="inMode"><button data-m="pad" aria-pressed="true">テンキー</button><button data-m="dept" aria-pressed="false">部署から</button></div>
+        <button class="btn sm" id="qrBtn">QRで読む</button>
+      </div>
+      <div id="padBox" style="margin-top:12px">
+        <input id="chIn" class="num" inputmode="none" autocomplete="off" placeholder="CH" aria-label="チャネル番号">
+        <div class="pad" id="pad">
+          <button>1</button><button>2</button><button>3</button>
+          <button>4</button><button>5</button><button>6</button>
+          <button>7</button><button>8</button><button>9</button>
+          <button class="fn" data-k="clr">クリア</button><button>0</button><button class="fn" data-k="bs">⌫</button>
+        </div>
+      </div>
+      <div id="deptBox" hidden style="margin-top:12px">
+        <select id="tDept" class="w100"></select>
+        <div class="row" style="justify-content:space-between;margin-top:8px"><span class="lbl num" id="tProg"></span><button class="btn sm" id="bulk">未点検を前回どおり記録</button></div>
+        <div class="prog"><i id="tBar" style="width:0"></i></div>
+        <div class="tiles" id="tiles"></div>
+        <p class="legend">✓ 今日点検済　● 未点検が続いている　←借 他部署から　貸→ 他部署へ</p>
+      </div>
+    </div>
+
+    <div class="card res">
+      <div id="resBody"></div>
+      <div id="form" hidden>
+        <label><span class="lbl">いまの所在</span><select id="loc" class="w100"></select></label>
+        <label class="chk" id="updWrap" hidden><input type="checkbox" id="upd"> 登録部署もこの部署に変更する（管理者）</label>
+        <div class="sec"><p class="lbl">管理状況</p>
+          <div class="sts" id="sts">
+            <button data-s="use">使用中</button><button data-s="keep">保管中</button><button data-s="repair">修理中</button><button data-s="lost">紛失</button><button data-s="other">その他</button>
+          </div>
+        </div>
+        <div class="sec" id="gA" hidden><p class="lbl" id="lA"></p><div class="chips" id="cA"></div></div>
+        <div class="sec" id="gB" hidden><p class="lbl" id="lB"></p><div class="chips" id="cB"></div></div>
+        <div class="sec"><p class="lbl" id="lMemo">コメント（任意）</p><input type="text" id="memo" class="w100" maxlength="80" placeholder="病室・気づいたことなど"></div>
+        <button id="save" disabled>点検を記録する</button>
+        <div class="mv"><span class="lbl" style="flex:1 1 100%;margin:0">所在の移動だけを記録</span>
+          <button class="btn" id="lendBtn">いまの所在へ貸出</button><button class="btn" id="backBtn">ME室へ返却</button></div>
+        <div id="regBox" hidden style="margin-top:10px" class="row">
+          <button class="btn" id="regBtn">このチャネルを登録</button><span class="lbl">いまの所在の部署で登録します</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <h3>今日の記録 <span class="tag num" id="todayN">0</span></h3>
+  <div class="card scroll"><table class="stack"><thead><tr><th>時刻</th><th>CH</th><th>所在</th><th>内容</th><th>点検結果</th><th>記録者</th><th></th></tr></thead><tbody id="todayT"></tbody></table><p class="empty" id="todayE">まだ記録はありません。</p></div>
+</section>
+
+<section id="v-report" hidden>
+  <div class="card now" id="nowCard"></div>
+  <h3>期間の集計</h3>
+  <div class="row">
+    <div class="seg" id="per"><button data-p="d" aria-pressed="true">日</button><button data-p="w" aria-pressed="false">週</button><button data-p="m" aria-pressed="false">月</button><button data-p="y" aria-pressed="false">年</button></div>
+    <button class="btn sm" id="prev" aria-label="前へ">◀</button><input type="date" id="base"><button class="btn sm" id="next" aria-label="次へ">▶</button>
+    <select id="fDept"></select>
+  </div>
+  <p class="meta num" id="rng"></p>
+  <div class="kpi" id="kpi"></div>
+  <div class="card"><p class="lbl">異常・アラームの内訳</p><div class="bars" id="bars"></div></div>
+  <div class="row" style="margin-top:12px">
+    <button class="btn pri" data-csv="sum">チャネル別CSV</button><button class="btn" data-csv="dept">部署別CSV</button><button class="btn" data-csv="log">明細CSV</button><span class="lbl" id="csvMsg"></span>
+  </div>
+  <h3>部署別</h3>
+  <div class="card scroll"><table class="stack"><thead><tr><th>部署</th><th class="r">実施</th><th class="r">一括</th><th class="r">異常</th><th class="r">汚染</th><th class="r">未点検CH</th></tr></thead><tbody id="deptT"></tbody></table></div>
+  <h3>チャネル別</h3>
+  <div class="card scroll"><table class="stack"><thead><tr><th>CH</th><th>登録部署</th><th class="r">実施</th><th class="r">一括</th><th>最終状況</th><th>点検結果</th><th>最終所在</th><th>最終点検</th></tr></thead><tbody id="sumT"></tbody></table></div>
+  <h3>明細</h3>
+  <div class="card scroll"><table class="stack"><thead><tr><th>日時</th><th>CH</th><th>所在</th><th>内容</th><th>点検結果</th><th>コメント</th><th>記録者</th></tr></thead><tbody id="logT"></tbody></table></div>
+</section>
+
+<section id="v-set" hidden>
+  <div class="card">
+    <h3 style="margin-top:0">保存の状態</h3>
+    <p class="meta" id="syncInfo" style="margin-top:0"></p>
+    <div class="row" id="apiRow"><input type="text" id="apiIn" class="f" inputmode="url" autocapitalize="off" placeholder="https://script.google.com/macros/s/…/exec"><button class="btn" id="apiSave">URLを保存</button></div>
+    <div class="row" style="margin-top:8px"><button class="btn" id="flushNow">今すぐ送信・再読み込み</button><button class="btn" id="logout">ログアウト</button></div>
+  </div>
+  <div id="adminOnly">
+  <div class="card" style="margin-top:12px">
+    <h3 style="margin-top:0">未点検とみなす日数</h3>
+    <div class="row"><select id="odDays"></select><span class="meta" style="margin:0">最後の点検からこの日数がたつと、タイルや集計で赤く出ます（修理中・紛失は除く）</span></div>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <h3 style="margin-top:0">部署</h3>
+    <div class="row"><input type="text" id="dIn" class="f" placeholder="例：5B"><button class="btn pri" id="dAdd">追加</button></div>
+    <div class="chipl" id="dList"></div>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <h3 style="margin-top:0">チャネル登録</h3>
+    <div class="row">
+      <input type="text" id="cIn" class="num" inputmode="numeric" placeholder="CH" style="width:100px">
+      <select id="cDept" class="f"></select>
+      <select id="cKind"><option>送信機</option><option>ベッドサイドモニタ</option><option>小モニタ</option></select>
+      <select id="cHome"><option value="病棟配置">病棟配置</option><option value="ME在庫">ME在庫</option></select>
+      <button class="btn pri" id="cAdd">登録</button>
+    </div>
+    <details style="margin-top:10px"><summary class="lbl" style="cursor:pointer">まとめて登録（1行に「CH,部署」）</summary>
+      <textarea id="bulkTxt" placeholder="1001,5B&#10;1002,5B"></textarea><button class="btn" id="bulkAdd" style="margin-top:6px">まとめて登録</button>
+    </details>
+    <div class="row" style="margin-top:14px"><input type="text" id="cFind" class="f" placeholder="CH・部署で絞り込み"><span class="tag num" id="cN">0</span></div>
+    <div class="scroll" style="margin-top:6px"><table class="stack"><thead><tr><th>CH</th><th>種別</th><th>登録部署</th><th>いま</th><th></th></tr></thead><tbody id="cList"></tbody></table></div>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <h3 style="margin-top:0">QRラベル印刷</h3>
+    <p class="meta" style="margin-top:0">送信機に貼るラベルです。A4に4列で並びます。印刷してから「QRで読む」で読み取れます。</p>
+    <div class="row"><select id="lbDept" class="f"></select><button class="btn pri" id="lbShow">ラベルを表示</button></div>
+  </div>
+  </div>
+</section>
+</main>
+
+<div id="login" class="dlg" hidden>
+  <div class="login">
+    <h2>送信機チェック</h2>
+    <p class="meta">5桁のユーザー番号を入れてください</p>
+    <div class="dots" id="dots"><i></i><i></i><i></i><i></i><i></i></div>
+    <p id="lErr" role="alert"></p>
+    <div class="pad" id="lPad">
+      <button>1</button><button>2</button><button>3</button>
+      <button>4</button><button>5</button><button>6</button>
+      <button>7</button><button>8</button><button>9</button>
+      <button class="fn" data-k="clr">クリア</button><button>0</button><button class="fn" data-k="bs">⌫</button>
+    </div>
+    <div id="lApi" hidden style="margin-top:18px;text-align:left">
+      <p class="lbl">GASのURL（はじめて使う端末だけ）</p>
+      <input type="text" id="lApiIn" class="w100" inputmode="url" autocapitalize="off" placeholder="https://script.google.com/macros/s/…/exec">
+    </div>
+  </div>
+</div>
+
+<div id="qr" class="dlg dim" hidden>
+  <div style="display:grid;gap:12px;justify-items:center;width:100%">
+    <div class="qrBox"><video id="qrV" playsinline muted></video></div>
+    <p id="qrMsg" style="color:#fff;margin:0">送信機のQRラベルを枠に入れてください</p>
+    <button class="btn" id="qrClose">閉じる</button>
+  </div>
+</div>
+
+<div id="labels" class="dlg" hidden>
+  <div class="lbBar"><b id="lbTitle" style="flex:1"></b><button class="btn pri" id="lbPrint">印刷</button><button class="btn" id="lbClose">閉じる</button></div>
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<div id="toast" role="status"><span id="tMsg"></span><button id="tUndo" hidden>取消</button></div>
+
+<script>
+{
+/* ===== 設定 =====
+ * API_URL：この画面用のGAS（telemetry/gas/コード.gs）をウェブアプリとしてデプロイしたURL（…/exec）
+ * 空欄のときは、はじめて開いた端末でURLを入れる欄が出ます */
+const API_URL = 'https://script.google.com/macros/s/AKfycbxyNPFREzOSi9h5LWz3sxbb8fQcXumMOc-Sic52EidlFeZov0TGgCfO0HFUAvRkoFWo/exec';
+const ME_ROOM = 'ME室';
+
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const STL={use:'使用中',keep:'保管中',repair:'修理中',lost:'紛失',other:'その他',lend:'貸出',back:'返却',idle:'保管中'};
+const MOVE={lend:1,back:1};
+const RES={use:{la:'アラーム',a:['問題なし','不整脈','上下限','テクニカル'],lb:'テクニカルの内容',b:['電池交換','電池切れ','電極確認','電波切れ','その他'],showB:a=>a==='テクニカル',ok:'問題なし'},
+           keep:{la:'本体・ケーブル',a:['正常','破損','汚染'],lb:'清掃・消毒',b:['実施','未実施'],showB:()=>true,ok:'正常',okB:'実施'}};
+const needMemo=s=>s==='repair'||s==='other';
+const resTxt=e=>[e.r1,e.r2].filter(Boolean).join('・');
+const isAbn=e=>e.st==='lost'||(e.st==='use'&&e.r1&&e.r1!=='問題なし')||(e.st==='keep'&&((e.r1&&e.r1!=='正常')||e.r2==='未実施'));
+const isInsp=e=>!MOVE[e.st];
+const kindOf=e=>MOVE[e.st]?STL[e.st]:(e.k==='一括'?'一括':'点検');
+const pad2=n=>String(n).padStart(2,'0');
+const dkey=t=>{const d=new Date(t);return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())};
+const hm=t=>{const d=new Date(t);return pad2(d.getHours())+':'+pad2(d.getMinutes())};
+const mdhm=t=>{const d=new Date(t);return (d.getMonth()+1)+'/'+d.getDate()+' '+hm(t)};
+const full=t=>dkey(t).replace(/-/g,'/')+' '+hm(t);
+const dayStart=t=>{const d=new Date(t);d.setHours(0,0,0,0);return d.getTime()};
+const daysSince=t=>Math.round((dayStart(Date.now())-dayStart(t))/864e5);
+const chSort=(a,b)=>(+a-+b)||String(a).localeCompare(String(b));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const lsGet=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}};
+const norm=m=>({depts:Array.isArray(m?.depts)?[...m.depts]:[],ch:{...(m?.ch||{})},last:{...(m?.last||{})},cfg:{overdueDays:Number(m?.cfg?.overdueDays)||1}});
+const apiUrl=()=>API_URL||lsGet('txc-api','');
+
+/* ===== 状態：前回の内容を端末から先に出す（電波がなくても開ける） ===== */
+let ready=false,netErr='';
+let sess=lsGet('txc-sess',null);               // {pin,name,admin}
+let remoteM=norm(lsGet('txc-cache-m2',null)),remoteLive=lsGet('txc-cache-live2',{});
+let Q=lsGet('txc-q2',[]);                      // 送信箱：まだGASに届いていない操作
+let M=norm(remoteM),live={};
+const saveQ=()=>{if(!lsSet('txc-q2',Q))toast('端末の保存容量が足りません。通信できる場所で開き直してください')};
+function applyE(m,e){
+  const l=m.last[e.ch]?{...m.last[e.ch]}:{dept:'',mt:0,t:0,st:'',r1:'',r2:'',by:'',lt:0};
+  if(e.t>=(l.mt||0)){l.dept=e.dept;l.mt=e.t}
+  if(MOVE[e.st]){if(e.t>=l.mt-1)l.lt=e.st==='lend'?e.t:0}
+  else if(e.t>=(l.t||0)){l.t=e.t;l.st=e.st;l.r1=e.r1||'';l.r2=e.r2||'';l.by=e.by||''}
+  m.last[e.ch]=l;
+}
+function apply(op,m,lv){
+  if(op.k==='e')for(const e of op.es){lv[e.id]=e;applyE(m,e)}
+  if(op.k==='d'){delete lv[op.e.id];if(op.last!==undefined){if(op.last)m.last[op.e.ch]=op.last;else delete m.last[op.e.ch]}}
+  if(op.k==='ch')m.ch[op.ch]={...(m.ch[op.ch]||{}),dept:op.dept??m.ch[op.ch]?.dept??'',kind:op.kind||m.ch[op.ch]?.kind||'送信機',home:op.home??m.ch[op.ch]?.home??''};
+  if(op.k==='chdel')delete m.ch[op.ch];
+  if(op.k==='dept'&&!m.depts.includes(op.name))m.depts.push(op.name);
+  if(op.k==='deptdel')m.depts=m.depts.filter(x=>x!==op.name);
+  if(op.k==='cfg'&&op.key==='overdueDays')m.cfg.overdueDays=Number(op.value)||1;
+}
+function rebuild(){M=norm(remoteM);live={...remoteLive};for(const op of Q)apply(op,M,live)}
+function saveCache(){lsSet('txc-cache-m2',remoteM);const from=dkey(Date.now()-864e5),o={};for(const k in remoteLive)if(dkey(remoteLive[k].t)>=from)o[k]=remoteLive[k];lsSet('txc-cache-live2',o)}
+
+/* ===== 記録：画面は即反映、GASへは裏で送る ===== */
+function commit(op){if(!sess){showLogin();return false}op.id=uid();op.pin=sess.pin;Q.push(op);saveQ();rebuild();renderAll();flushSoon();return true}
+const withTimeout=(p,ms)=>Promise.race([p,new Promise((_,rj)=>setTimeout(()=>rj(new Error('timeout')),ms))]);
+async function call(action,payload={},pin=sess?.pin){
+  const u=apiUrl();if(!u)throw new Error('no-url');
+  const r=await withTimeout(fetch(u,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,pin,...payload})}).then(r=>r.json()),30000);
+  if(!r||!r.ok){const e=new Error(r?.error||'応答がありません');e.server=true;e.auth=!!r?.auth;throw e}
+  return r.data;
+}
+function authLost(msg){sess=null;lsSet('txc-sess',null);showLogin(msg||'ログインし直してください')}
+let flushing=false,retry=3000,fT;
+const flushSoon=()=>{clearTimeout(fT);fT=setTimeout(flush,300)};
+async function flush(){
+  if(flushing||!Q.length||!apiUrl()||!sess){renderSync();return}
+  flushing=true;renderSync();
+  try{
+    const batch=Q.slice(0,60);
+    const res=await call('push',{ops:batch});
+    const gone=new Set([...(res.done||[]),...(res.rejected||[]).map(x=>x.id)]);
+    if(res.rejected?.length)toast(`${res.rejected.length}件は保存できませんでした：${res.rejected[0].error}`);
+    Q=Q.filter(o=>!gone.has(o.id));saveQ();retry=3000;netErr='';
+    await load(true);
+    if(Q.length){flushing=false;return flush()}
+  }catch(err){
+    if(err.auth){authLost();return}
+    netErr=err.server?err.message:'';
+    retry=Math.min(retry*2,60000);clearTimeout(fT);fT=setTimeout(flush,retry);
+  }finally{flushing=false;renderSync();renderToday()}
+}
+async function load(quiet){
+  if(!apiUrl()||!sess){ready=true;renderSync();return}
+  try{
+    const d=await call('init');
+    remoteM=norm(d);remoteLive={};for(const e of d.recent||[])remoteLive[e.id]=e;
+    if(d.me){sess={...sess,name:d.me.name,admin:d.me.admin};lsSet('txc-sess',sess)}
+    netErr='';saveCache();rebuild();
+  }catch(err){if(err.auth){authLost();return}if(err.server)netErr=err.message;else if(!quiet)toast('通信できません。前回の内容で表示しています')}
+  ready=true;renderAll();renderSync();
+}
+addEventListener('online',()=>{retry=3000;flushSoon();load(true)});
+addEventListener('offline',renderSync);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){flushSoon();if(!Q.length)load(true)}});
+setInterval(()=>{if(!document.hidden&&!Q.length&&navigator.onLine)load(true)},120000);
+function renderSync(){
+  const s=$('#sync'),n=Q.length,off=!navigator.onLine;
+  let t,c='';
+  if(!apiUrl()){t='GAS未設定';c='off'}
+  else if(off){t=n?`オフライン・${n}件待ち`:'オフライン';c='off'}
+  else if(netErr){t='送信エラー';c='off'}
+  else if(n){t=`送信中 ${n}件`;c='wait'}
+  else if(!ready)t='読み込み中';
+  else t='保存済み';
+  s.textContent=t;s.className=c;
+  $('#syncInfo').textContent=(apiUrl()?'記録はすぐ画面に反映し、裏でスプレッドシートへ送ります。電波がない間はこの端末にためておき、つながったら自動で送ります。':'GASのURLが未設定です。')+` いま未送信：${n}件。`+(netErr?` エラー：${netErr}`:'');
+  $('#apiIn').value=apiUrl();$('#apiRow').hidden=!!API_URL;
+}
+$('#sync').onclick=()=>{$('nav button[data-v=set]').click()};
+$('#flushNow').onclick=()=>{retry=3000;flush();load(true)};
+$('#apiSave').onclick=()=>{const u=$('#apiIn').value.trim();if(!/^https:\/\/script\.google\.com\//.test(u)){toast('script.google.com のURLを入れてください');return}lsSet('txc-api',u);load();flushSoon()};
+
+/* ===== ログイン（5桁のユーザー番号） ===== */
+let pinBuf='';
+function showLogin(msg){pinBuf='';drawDots();$('#lErr').textContent=msg||'';$('#lApi').hidden=!!apiUrl();$('#login').hidden=false}
+function drawDots(){$$('#dots i').forEach((d,i)=>d.classList.toggle('on',i<pinBuf.length))}
+$('#lPad').onclick=async e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.k==='clr')pinBuf='';else if(b.dataset.k==='bs')pinBuf=pinBuf.slice(0,-1);else if(pinBuf.length<5)pinBuf+=b.textContent;
+  drawDots();$('#lErr').textContent='';
+  if(pinBuf.length===5){
+    const u=$('#lApiIn').value.trim();
+    if(!apiUrl()){if(!/^https:\/\/script\.google\.com\//.test(u)){$('#lErr').textContent='先にGASのURLを入れてください';pinBuf='';drawDots();return}lsSet('txc-api',u)}
+    $('#lErr').textContent='確認しています…';
+    try{const me=await call('login',{},pinBuf);sess={pin:pinBuf,name:me.name,admin:me.admin};lsSet('txc-sess',sess);$('#login').hidden=true;toast(`${me.name}さん、ログインしました`);renderAll();load();flushSoon()}
+    catch(err){$('#lErr').textContent=err.server?err.message:'通信できません。電波のある場所でログインしてください';pinBuf='';drawDots()}
+  }};
+$('#logout').onclick=()=>{if(!confirm2('logout',Q.length?`未送信が${Q.length}件あります。もう一度押すとログアウトします（未送信は次にログインした人が送ります）`:'もう一度押すとログアウトします'))return;sess=null;lsSet('txc-sess',null);showLogin()};
+$('#whoBtn').onclick=()=>{$('nav button[data-v=set]').click()};
+
+/* ===== toast ===== */
+let tT,undoFn=null;
+function toast(msg,undo){$('#tMsg').textContent=msg;undoFn=undo||null;$('#tUndo').hidden=!undo;$('#toast').classList.add('on');clearTimeout(tT);tT=setTimeout(()=>$('#toast').classList.remove('on'),undo?5000:2400)}
+$('#tUndo').onclick=()=>{const f=undoFn;undoFn=null;$('#toast').classList.remove('on');f&&f()};
+let pend=null;const confirm2=(key,msg)=>{if(pend!==key){pend=key;toast(msg);setTimeout(()=>{if(pend===key)pend=null},3500);return false}pend=null;return true};
+
+/* ===== 画面切り替え ===== */
+$$('nav button').forEach(b=>b.onclick=()=>{
+  $$('nav button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  for(const v of['check','report','set'])$('#v-'+v).hidden=v!==b.dataset.v;
+  if(b.dataset.v==='report'){renderNow();loadReport()}
+});
+const deptOpts=(sel,blank)=>(blank!=null?`<option value="">${esc(blank)}</option>`:'')+M.depts.map(d=>`<option${d===sel?' selected':''}>${esc(d)}</option>`).join('');
+function renderAll(){
+  $('#whoBtn').textContent=sess?sess.name+(sess.admin?'（管理者）':''):'未ログイン';
+  $('#adminOnly').hidden=!sess?.admin;
+  renderCheck();renderToday();renderTiles();renderSet();
+  const f=$('#fDept').value;$('#fDept').innerHTML=deptOpts(f,'全部署');
+  const t=$('#tDept').value||lsGet('txc-tdept','');$('#tDept').innerHTML=deptOpts(M.depts.includes(t)?t:M.depts[0],null);
+  if(!$('#v-report').hidden)renderNow();
+}
+const todayMap=()=>{const td=dkey(Date.now()),o={};for(const e of Object.values(live))if(isInsp(e)&&dkey(e.t)===td&&(!o[e.ch]||o[e.ch].t<e.t))o[e.ch]=e;return o};
+const isOverdue=c=>{const l=M.last[c];if(l&&(l.st==='repair'||l.st==='lost'))return false;return !l||!l.t||daysSince(l.t)>=M.cfg.overdueDays};
+
+/* ===== 点検：入力 ===== */
+const chIn=$('#chIn');let curCh='',F={st:'',r1:'',r2:''};
+$$('#inMode button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
+function setMode(m){$$('#inMode button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.m===m));$('#padBox').hidden=m!=='pad';$('#deptBox').hidden=m!=='dept';lsSet('txc-mode',m);if(m==='dept')renderTiles()}
+$('#pad').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.k==='clr')chIn.value='';else if(b.dataset.k==='bs')chIn.value=chIn.value.slice(0,-1);else if(chIn.value.length<8)chIn.value+=b.textContent;
+  pick(chIn.value.trim())};
+chIn.oninput=()=>{chIn.value=chIn.value.replace(/[^0-9A-Za-z\-]/g,'').slice(0,8);pick(chIn.value.trim())};
+function pick(ch){
+  if(ch!==curCh){
+    curCh=ch;const l=M.last[ch];
+    F={st:l?.st==='idle'?'keep':(l?.st||''),r1:l?.r1||'',r2:l?.r2||''};
+    if(F.st&&RES[F.st]&&!F.r1){F.r1=RES[F.st].ok;F.r2=RES[F.st].okB||''}
+    $('#memo').value='';$('#upd').checked=false;$('#loc').dataset.keep='';
+  }
+  renderCheck();
+}
+function renderCheck(){
+  const ch=curCh;
+  if(!ch){$('#resBody').innerHTML='<p class="empty">チャネル番号を入れるか、QRを読むか、部署から選んでください。前回の点検内容が選ばれた状態で開くので、変わりなければ「点検を記録する」を押すだけです。</p>';$('#form').hidden=true;return}
+  const reg=M.ch[ch],l=M.last[ch],td=todayMap()[ch];
+  const lent=l?.lt&&l.dept!==ME_ROOM;
+  const tags=(reg?'<span class="tag ok">登録済</span>':'<span class="tag warn">未登録</span>')+(reg?.kind&&reg.kind!=='送信機'?` <span class="tag">${esc(reg.kind)}</span>`:'')+(reg?.home==='ME在庫'?' <span class="tag">ME在庫</span>':'')
+    +(lent?` <span class="tag">貸出中 ${daysSince(l.lt)}日目</span>`:'')+(td?' <span class="tag ok">今日点検済</span>':(reg&&isOverdue(ch)?` <span class="tag warn">${l?.t?daysSince(l.t)+'日':'一度も'}点検なし</span>`:''));
+  const lastTxt=l?.t?`前回点検：<span class="dot d-${esc(l.st)}"></span>${esc(STL[l.st]||'')}${resTxt(l)?'（'+esc(resTxt(l))+'）':''}・<span class="num">${esc(mdhm(l.t))}</span>${l.by?'・'+esc(l.by):''}`:'点検記録なし';
+  $('#resBody').innerHTML=`<h2 class="num">${esc(ch)} ${tags}</h2><p class="meta">登録部署：<b>${reg?esc(reg.dept||'未設定'):'—'}</b>　いまの所在：<b>${esc(l?.dept||reg?.dept||'—')}</b>${reg?.note?`<br><span class="abn">${esc(reg.note)}</span>`:''}<br>${lastTxt}</p>`;
+  $('#form').hidden=false;$('#regBox').hidden=!!reg;
+  const keep=$('#loc').dataset.keep||'';
+  const def=keep||l?.dept||reg?.dept||($('#deptBox').hidden?'':$('#tDept').value)||lsGet('txc-lastloc','');
+  $('#loc').innerHTML=deptOpts(M.depts.includes(def)?def:'',M.depts.length?'部署を選択':'部署が未登録です');
+  renderForm();
+}
+function renderForm(){
+  $$('#sts button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.s===F.st));
+  const R=RES[F.st];
+  $('#gA').hidden=!R;$('#gB').hidden=!(R&&R.showB(F.r1));
+  if(R){
+    $('#lA').textContent=R.la;$('#lB').textContent=R.lb;
+    $('#cA').innerHTML=R.a.map(x=>`<button data-a="${esc(x)}" class="${x!==R.ok?'bad':''}" aria-pressed="${x===F.r1}">${esc(x)}</button>`).join('');
+    $('#cB').innerHTML=R.b.map(x=>`<button data-b="${esc(x)}" class="${F.st==='keep'&&x==='未実施'||F.st==='use'?'bad':''}" aria-pressed="${x===F.r2}">${esc(x)}</button>`).join('');
+  }
+  $('#lMemo').textContent=needMemo(F.st)?'コメント（必須）':'コメント（任意）';
+  const reg=M.ch[curCh],v=$('#loc').value;$('#updWrap').hidden=!(sess?.admin&&reg&&v&&v!==reg.dept);
+  $('#save').disabled=!valid();
+  $('#lendBtn').disabled=!curCh||!v||v===ME_ROOM;$('#backBtn').disabled=!curCh||M.last[curCh]?.dept===ME_ROOM&&!M.last[curCh]?.lt;
+  $('#lendBtn').textContent=v&&v!==ME_ROOM?`${v}へ貸出`:'いまの所在へ貸出';
+}
+function valid(){
+  if(!curCh||!F.st)return false;
+  if(F.st==='use')return !!F.r1&&(F.r1!=='テクニカル'||!!F.r2);
+  if(F.st==='keep')return !!F.r1&&!!F.r2;
+  if(needMemo(F.st))return !!$('#memo').value.trim();
+  return true;
+}
+$('#sts').onclick=e=>{const s=e.target.closest('button')?.dataset.s;if(!s)return;if(F.st!==s){F.st=s;const R=RES[s];F.r1=R?R.ok:'';F.r2=R?.okB||''}renderForm()};
+$('#cA').onclick=e=>{const a=e.target.closest('button')?.dataset.a;if(a==null)return;F.r1=a;if(F.st==='use')F.r2='';renderForm()};
+$('#cB').onclick=e=>{const b=e.target.closest('button')?.dataset.b;if(b==null)return;F.r2=b;renderForm()};
+$('#memo').oninput=()=>{$('#save').disabled=!valid()};
+$('#loc').onchange=()=>{$('#loc').dataset.keep=$('#loc').value;lsSet('txc-lastloc',$('#loc').value);renderForm()};
+const mkE=(ch,o)=>({id:uid(),t:Date.now(),ch,by:sess?.name||'',u:M.ch[ch]?0:1,memo:'',r1:'',r2:'',k:'点検',...o});
+function afterRecord(ch,e,msg){
+  const p=prev;chIn.value='';curCh='';renderCheck();
+  toast(msg,()=>undo(e,p));
+  if(!$('#padBox').hidden)chIn.focus({preventScroll:true});
+}
+let prev;
+function record(){
+  if(!valid())return;if(!sess){showLogin();return}
+  const ch=curCh,dept=$('#loc').value;prev=M.last[ch]?{...M.last[ch]}:null;
+  const e=mkE(ch,{dept,st:F.st,r1:F.r1||'',r2:(F.st==='use'&&F.r1!=='テクニカル')?'':(F.r2||''),memo:$('#memo').value.trim()});
+  if(!commit({k:'e',es:[e]}))return;
+  if(sess.admin&&M.ch[ch]&&dept&&$('#upd').checked)commit({k:'ch',ch,dept});
+  afterRecord(ch,e,`CH ${ch}：${STL[e.st]}${resTxt(e)?'・'+resTxt(e):''}`);
+}
+function move(st){
+  if(!curCh)return;if(!sess){showLogin();return}
+  const ch=curCh,dept=st==='back'?ME_ROOM:$('#loc').value;if(!dept)return;prev=M.last[ch]?{...M.last[ch]}:null;
+  const e=mkE(ch,{dept,st,memo:$('#memo').value.trim(),k:STL[st]});
+  if(!commit({k:'e',es:[e]}))return;
+  afterRecord(ch,e,st==='lend'?`CH ${ch} を${dept}へ貸出`:`CH ${ch} をME室へ返却`);
+}
+$('#lendBtn').onclick=()=>move('lend');$('#backBtn').onclick=()=>move('back');
+function undo(e,p){
+  // 直後の取消は記録前の状態に戻す。あとからの取消はGASが履歴から計算し直す
+  commit(p!==undefined?{k:'d',e,last:p}:{k:'d',e});toast(`CH ${e.ch} の記録を取り消しました`);
+}
+$('#save').onclick=record;
+$('#regBtn').onclick=()=>{const ch=curCh,dept=$('#loc').value;if(!ch)return;if(commit({k:'ch',ch,dept,kind:'送信機',home:''}))toast(`CH ${ch} を登録しました`)};
+document.addEventListener('keydown',e=>{if($('#v-check').hidden||!$('#login').hidden)return;if(e.key==='Enter'&&(e.target===chIn||e.target===$('#memo'))){e.preventDefault();record()}});
+
+/* ===== 点検：部署のタイル ===== */
+$('#tDept').onchange=()=>{lsSet('txc-tdept',$('#tDept').value);renderTiles()};
+function deptChs(d){
+  const s=new Set();for(const c in M.ch)if(M.ch[c].dept===d)s.add(c);
+  for(const c in M.last)if(M.last[c]?.dept===d)s.add(c);
+  return [...s].sort(chSort);
+}
+function renderTiles(){
+  if($('#deptBox').hidden)return;
+  const d=$('#tDept').value,tm=todayMap(),chs=d?deptChs(d):[];
+  const here=chs.filter(c=>(M.last[c]?.dept||M.ch[c]?.dept)===d),done=here.filter(c=>tm[c]).length;
+  $('#tProg').textContent=d?`${done} / ${here.length} 点検済`:'';$('#tBar').style.width=here.length?(done/here.length*100)+'%':'0';
+  $('#tiles').innerHTML=chs.map(c=>{const t=tm[c],l=M.last[c],reg=M.ch[c],cur=l?.dept||reg?.dept;
+    const mk=!reg?'未登録':(reg.dept!==d?'←借':(cur&&cur!==d?'貸→':''));
+    const st=(t||l)?.st;
+    return `<button class="tile ${t?'done ':''}s-${esc(st==='idle'?'keep':st||'')}" data-ch="${esc(c)}"><b>${esc(c)}</b><small>${esc(st?STL[st]||'':'未点検')}</small>${t?'<span class="ok">✓</span>':''}${!t&&reg&&cur===d&&isOverdue(c)?'<span class="od" title="未点検"></span>':''}${mk?`<span class="mk">${esc(mk)}</span>`:''}</button>`}).join('')||'<p class="empty">この部署のチャネルはありません。</p>';
+}
+$('#tiles').onclick=e=>{const c=e.target.closest('[data-ch]')?.dataset.ch;if(!c)return;chIn.value=c;curCh='';pick(c);if(innerWidth<760)$('#form').scrollIntoView({behavior:'smooth',block:'start'})};
+let bulkArm=0;
+$('#bulk').onclick=()=>{
+  const d=$('#tDept').value;if(!d)return;if(!sess){showLogin();return}
+  const tm=todayMap(),here=deptChs(d).filter(c=>(M.last[c]?.dept||M.ch[c]?.dept)===d&&!tm[c]);
+  const todo=here.filter(c=>M.last[c]?.t),skip=here.length-todo.length;
+  if(!todo.length){toast(skip?`前回記録がない${skip}件は個別に点検してください`:'未点検はありません');return}
+  if(Date.now()-bulkArm>3500){bulkArm=Date.now();toast(`もう一度押すと${todo.length}件を前回どおり記録します（集計では「一括」と分けて数えます）`);return}
+  bulkArm=0;const now=Date.now();
+  const es=todo.map(c=>{const l=M.last[c];return mkE(c,{t:now,dept:d,st:l.st==='idle'?'keep':l.st,r1:l.r1||'',r2:l.r2||'',by:sess.name+'（一括）',k:'一括'})});
+  commit({k:'e',es});toast(`${es.length}件を一括記録しました${skip?`（前回記録なし${skip}件は残しています）`:''}`);
+};
+function renderToday(){
+  const td=dkey(Date.now()),rows=Object.values(live).filter(x=>dkey(x.t)===td).sort((a,b)=>b.t-a.t);
+  $('#todayN').textContent=rows.length;$('#todayE').hidden=rows.length>0;
+  const pendIds=new Set(Q.flatMap(o=>o.k==='e'?o.es.map(e=>e.id):[]));
+  $('#todayT').innerHTML=rows.slice(0,80).map(x=>`<tr><td class="num nw">${esc(hm(x.t))}${pendIds.has(x.id)?' <span class="tag">未送信</span>':''}</td><td class="num"><b>${esc(x.ch)}</b>${x.u?' <span class="tag warn">未登録</span>':''}</td><td>${esc(x.dept||'—')}</td><td class="nw"><span class="dot d-${esc(x.st)}"></span>${esc(MOVE[x.st]?STL[x.st]:STL[x.st]+(x.k==='一括'?'（一括）':''))}</td><td class="${isAbn(x)?'abn':''}">${esc(resTxt(x))}</td><td>${esc(x.by)}</td><td><button class="btn sm" data-del="${esc(x.id)}">取消</button></td></tr>`).join('');
+}
+$('#todayT').onclick=e=>{const id=e.target.closest('[data-del]')?.dataset.del;if(!id||!live[id])return;if(!confirm2('del'+id,'もう一度押すとこの記録を取り消します'))return;undo(live[id])};
+
+/* ===== QRで読む ===== */
+let qrStream=null,qrRun=false,detector=null;
+async function openQR(){
+  $('#qr').hidden=false;$('#qrMsg').textContent='送信機のQRラベルを枠に入れてください';
+  try{
+    qrStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
+    const v=$('#qrV');v.srcObject=qrStream;await v.play();
+    if('BarcodeDetector' in window){try{detector=new BarcodeDetector({formats:['qr_code']})}catch(e){detector=null}}
+    if(!detector&&!window.jsQR)await new Promise((res,rej)=>{const s=document.createElement('script');s.src='lib/jsQR.js';s.onload=res;s.onerror=rej;document.head.appendChild(s)});
+    qrRun=true;scan();
+  }catch(e){$('#qrMsg').textContent='カメラを使えません。ブラウザのカメラの許可を確認してください'}
+}
+function closeQR(){qrRun=false;if(qrStream)qrStream.getTracks().forEach(t=>t.stop());qrStream=null;$('#qr').hidden=true}
+const cv=document.createElement('canvas'),cx=cv.getContext('2d',{willReadFrequently:true});
+async function scan(){
+  if(!qrRun)return;const v=$('#qrV');let txt='';
+  try{
+    if(v.readyState>=2){
+      if(detector){const r=await detector.detect(v);txt=r[0]?.rawValue||''}
+      else{const w=v.videoWidth,h=v.videoHeight,s=Math.min(1,640/Math.max(w,h));cv.width=w*s;cv.height=h*s;cx.drawImage(v,0,0,cv.width,cv.height);const r=window.jsQR(cx.getImageData(0,0,cv.width,cv.height).data,cv.width,cv.height,{inversionAttempts:'dontInvert'});txt=r?.data||''}
+    }
+  }catch(e){}
+  const m=txt.match(/[0-9A-Za-z\-]{3,8}$/);
+  if(m){const ch=m[0].replace(/^TX-?/i,'');closeQR();try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}setMode('pad');chIn.value=ch;curCh='';pick(ch);return}
+  setTimeout(scan,120);
+}
+$('#qrBtn').onclick=openQR;$('#qrClose').onclick=closeQR;
+
+/* ===== 集計：いまの状態 ===== */
+function renderNow(){
+  const lent=[],issue=[],od=[];
+  for(const c in M.last){const l=M.last[c],reg=M.ch[c];
+    if(l.lt&&l.dept!==ME_ROOM)lent.push([c,l.dept,daysSince(l.lt)]);
+    if(l.st==='repair'||l.st==='lost'||(l.st==='keep'&&(l.r1==='破損'||l.r1==='汚染')))issue.push([c,l.st==='keep'?l.r1:STL[l.st],l.dept,daysSince(l.t)])}
+  for(const c in M.ch)if(isOverdue(c))od.push(c);
+  lent.sort((a,b)=>b[2]-a[2]);issue.sort((a,b)=>b[3]-a[3]);
+  const byDept={};for(const c of od){const d=M.last[c]?.dept||M.ch[c].dept||'未設定';(byDept[d]||(byDept[d]=[])).push(c)}
+  const tbl=(h,rows)=>`<div class="scroll"><table class="stack"><thead><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  $('#nowCard').innerHTML=`<h4>貸出中のME在庫 <span class="tag num">${lent.length}</span></h4>`+(lent.length?tbl(['CH','貸出先','日数'],lent.map(r=>`<tr><td class="num"><b>${esc(r[0])}</b></td><td>${esc(r[1])}</td><td class="num ${r[2]>=14?'abn':''}">${r[2]}日目</td></tr>`).join('')):'<p class="empty">ありません</p>')
+   +`<h4>対応中（修理中・汚染・破損・紛失） <span class="tag num">${issue.length}</span></h4>`+(issue.length?tbl(['CH','状況','所在','日数'],issue.map(r=>`<tr><td class="num"><b>${esc(r[0])}</b></td><td class="abn">${esc(r[1])}</td><td>${esc(r[2])}</td><td class="num">${r[3]}日</td></tr>`).join('')):'<p class="empty">ありません</p>')
+   +`<h4>未点検（${M.cfg.overdueDays}日以上） <span class="tag num ${od.length?'warn':''}">${od.length}</span></h4>`+(od.length?`<div class="chipl">${Object.entries(byDept).sort((a,b)=>b[1].length-a[1].length).map(([d,cs])=>`<span class="chip" style="padding-right:12px" title="${esc(cs.join(', '))}">${esc(d)} <b class="num">${cs.length}</b></span>`).join('')}</div>`:'<p class="empty">ありません</p>');
+}
+
+/* ===== 集計：期間 ===== */
+let per='d';$('#base').value=dkey(Date.now());
+function period(){
+  const b=new Date($('#base').value+'T00:00');let s=new Date(b),e=new Date(b);
+  if(per==='w'){s.setDate(b.getDate()-(b.getDay()+6)%7);e=new Date(s);e.setDate(s.getDate()+6)}
+  if(per==='m'){s=new Date(b.getFullYear(),b.getMonth(),1);e=new Date(b.getFullYear(),b.getMonth()+1,0)}
+  if(per==='y'){s=new Date(b.getFullYear(),0,1);e=new Date(b.getFullYear(),11,31)}
+  return[dkey(s),dkey(e)];
+}
+function shift(n){const b=new Date($('#base').value+'T00:00');if(per==='d')b.setDate(b.getDate()+n);if(per==='w')b.setDate(b.getDate()+7*n);if(per==='m')b.setMonth(b.getMonth()+n,1);if(per==='y')b.setFullYear(b.getFullYear()+n);$('#base').value=dkey(b);loadReport()}
+$('#per').onclick=e=>{const b=e.target.closest('button');if(!b)return;per=b.dataset.p;$$('#per button').forEach(x=>x.setAttribute('aria-pressed',x===b));loadReport()};
+$('#prev').onclick=()=>shift(-1);$('#next').onclick=()=>shift(1);$('#base').onchange=loadReport;$('#fDept').onchange=()=>drawReport();
+let RP={logs:[],sum:[],depts:[],view:[],from:'',to:'',partial:false};
+async function getRange(from,to){
+  const inR=x=>{const d=dkey(x.t);return d>=from&&d<=to};
+  let rows=[],partial=false;
+  try{rows=(await call('range',{from,to})).rows||[]}
+  catch(e){if(e.auth){authLost();return{logs:[],partial:true}}partial=true;rows=Object.values(remoteLive).filter(inR)}
+  const m={};for(const r of rows)m[r.id]=r;
+  for(const op of Q){if(op.k==='e')for(const e of op.es)if(inR(e))m[e.id]=e;if(op.k==='d')delete m[op.e.id]}
+  return{logs:Object.values(m),partial};
+}
+async function loadReport(){
+  const[from,to]=period();RP.from=from;RP.to=to;$('#rng').textContent='読み込み中…';
+  const r=await getRange(from,to);RP.logs=r.logs.sort((a,b)=>a.t-b.t);RP.partial=r.partial;drawReport();
+}
+function drawReport(){
+  const f=$('#fDept').value,logs=RP.logs.filter(x=>!f||x.dept===f||M.ch[x.ch]?.dept===f),insp=logs.filter(isInsp),map={},dm={};
+  for(const c in M.ch)if(!f||M.ch[c].dept===f)map[c]={ch:c,reg:M.ch[c].dept||'',n:0,b:0,last:null};
+  for(const x of insp){const m=map[x.ch]||(map[x.ch]={ch:x.ch,reg:M.ch[x.ch]?.dept||'（未登録）',n:0,b:0,last:null});x.k==='一括'?m.b++:m.n++;m.last=x}
+  for(const d of M.depts)if(!f||d===f)dm[d]={d,n:0,b:0,ab:0,dirty:0,un:0};
+  for(const x of insp){const d=dm[x.dept]||(dm[x.dept]={d:x.dept||'（なし）',n:0,b:0,ab:0,dirty:0,un:0});x.k==='一括'?d.b++:d.n++;if(isAbn(x))d.ab++;if(x.r1==='汚染')d.dirty++}
+  RP.sum=Object.values(map).sort((a,b)=>chSort(a.ch,b.ch));
+  for(const m of RP.sum)if(!m.n&&!m.b&&M.ch[m.ch]&&dm[m.reg])dm[m.reg].un++;
+  RP.depts=Object.values(dm);RP.view=logs;
+  const cnt=k=>logs.filter(x=>kindOf(x)===k).length,unchk=RP.sum.filter(m=>!m.n&&!m.b&&M.ch[m.ch]).length;
+  $('#rng').textContent=RP.from.replace(/-/g,'/')+(RP.from===RP.to?'':' 〜 '+RP.to.replace(/-/g,'/'))+(f?'　'+f:'')+(RP.partial?'　※通信できないため直近2日分のみ':'');
+  $('#kpi').innerHTML=[['実施した点検',cnt('点検')],['一括記録',cnt('一括')],['異常',insp.filter(isAbn).length],['未点検CH',unchk],['貸出',cnt('貸出')],['返却',cnt('返却')]].map(([k,v])=>`<div><b class="num">${v}</b><span>${k}</span></div>`).join('');
+  const ab={};for(const x of insp){if(x.st==='use'&&x.r1&&x.r1!=='問題なし'){const k=x.r1==='テクニカル'&&x.r2?'テク：'+x.r2:x.r1;ab[k]=(ab[k]||0)+1}
+    if(x.st==='keep'){if(x.r1&&x.r1!=='正常')ab[x.r1]=(ab[x.r1]||0)+1;if(x.r2==='未実施')ab['清掃未実施']=(ab['清掃未実施']||0)+1}
+    if(x.st==='lost')ab['紛失']=(ab['紛失']||0)+1;if(x.st==='repair')ab['修理中']=(ab['修理中']||0)+1}
+  const top=Object.entries(ab).sort((a,b)=>b[1]-a[1]),mx=top[0]?.[1]||1;
+  $('#bars').innerHTML=top.map(([k,v])=>`<div><span>${esc(k)}</span><i style="width:${v/mx*100}%"></i><span class="num">${v}</span></div>`).join('')||'<p class="empty">この期間の異常・アラームはありません。</p>';
+  $('#deptT').innerHTML=RP.depts.map(d=>`<tr><td>${esc(d.d)}</td><td class="r num">${d.n}</td><td class="r num">${d.b}</td><td class="r num ${d.ab?'abn':''}">${d.ab}</td><td class="r num ${d.dirty?'abn':''}">${d.dirty}</td><td class="r num">${d.un}</td></tr>`).join('');
+  $('#sumT').innerHTML=RP.sum.map(m=>`<tr><td class="num"><b>${esc(m.ch)}</b></td><td>${esc(m.reg)}</td><td class="r num">${m.n}</td><td class="r num">${m.b}</td><td class="nw">${m.last?`<span class="dot d-${esc(m.last.st)}"></span>${esc(STL[m.last.st]||'')}`:'<span class="tag">未点検</span>'}</td><td class="${m.last&&isAbn(m.last)?'abn':''}">${m.last?esc(resTxt(m.last)):''}</td><td>${m.last?esc(m.last.dept):''}</td><td class="num nw">${m.last?esc(mdhm(m.last.t)):''}</td></tr>`).join('')||'<tr><td colspan="8" class="empty">データなし</td></tr>';
+  $('#logT').innerHTML=logs.slice().reverse().slice(0,300).map(x=>`<tr><td class="num nw">${esc(mdhm(x.t))}</td><td class="num"><b>${esc(x.ch)}</b></td><td>${esc(x.dept)}</td><td class="nw"><span class="dot d-${esc(x.st)}"></span>${esc(MOVE[x.st]?STL[x.st]:STL[x.st]+(x.k==='一括'?'（一括）':''))}</td><td class="${isAbn(x)?'abn':''}">${esc(resTxt(x))}</td><td>${esc(x.memo)}</td><td>${esc(x.by)}</td></tr>`).join('')||'<tr><td colspan="7" class="empty">記録なし</td></tr>';
+}
+const csvQ=v=>{v=String(v??'');return/[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+$$('[data-csv]').forEach(b=>b.onclick=()=>{
+  const k=b.dataset.csv,P={d:'日次',w:'週次',m:'月次',y:'年次'}[per];
+  const rows=k==='sum'?[['CH','登録部署','実施','一括','最終管理状況','点検結果1','点検結果2','最終所在','最終点検'],...RP.sum.map(m=>[m.ch,m.reg,m.n,m.b,m.last?STL[m.last.st]:'未点検',m.last?.r1||'',m.last?.r2||'',m.last?.dept||'',m.last?full(m.last.t):''])]
+    :k==='dept'?[['部署','実施','一括','異常','汚染','未点検CH'],...RP.depts.map(d=>[d.d,d.n,d.b,d.ab,d.dirty,d.un])]
+    :[['日時','CH','所在','記録種別','管理状況','点検結果1','点検結果2','コメント','記録者','登録'],...RP.view.map(x=>[full(x.t),x.ch,x.dept,kindOf(x),MOVE[x.st]?'':STL[x.st]||'',x.r1||'',x.r2||'',x.memo,x.by,x.u?'未登録':'登録済'])];
+  const text='﻿'+rows.map(r=>r.map(csvQ).join(',')).join('\r\n');
+  const name=`送信機_${P}_${{sum:'チャネル別',dept:'部署別',log:'明細'}[k]}_${RP.from}${RP.from===RP.to?'':'_'+RP.to}.csv`;
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'text/csv'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);$('#csvMsg').textContent='ダウンロードしました';
+});
+
+/* ===== 設定（管理者） ===== */
+function renderSet(){
+  $('#odDays').innerHTML=[1,2,3,5,7,14,30].map(n=>`<option value="${n}"${n===M.cfg.overdueDays?' selected':''}>${n}日${n===1?'（毎日点検）':n===7?'（週1回）':''}</option>`).join('');
+  $('#dList').innerHTML=M.depts.map((d,i)=>`<span class="chip">${esc(d)}<button data-di="${i}" aria-label="${esc(d)}を削除">×</button></span>`).join('')||'<span class="empty">部署が未登録です</span>';
+  const cd=$('#cDept').value;$('#cDept').innerHTML=deptOpts(cd,'部署を選択');
+  const ld=$('#lbDept').value;$('#lbDept').innerHTML=deptOpts(ld,'全チャネル');
+  const q=$('#cFind').value.trim(),all=Object.keys(M.ch).sort(chSort);
+  const list=all.filter(c=>!q||c.includes(q)||(M.ch[c].dept||'').includes(q));
+  $('#cN').textContent=all.length+'件';
+  $('#cList').innerHTML=list.slice(0,300).map(c=>{const l=M.last[c],r=M.ch[c];return`<tr><td class="num"><b>${esc(c)}</b></td><td>${esc(r.kind||'送信機')}${r.home==='ME在庫'?' <span class="tag">ME在庫</span>':''}</td><td><select data-cd="${esc(c)}">${deptOpts(r.dept,'未設定')}</select></td><td class="nw">${l?`${l.st?`<span class="dot d-${esc(l.st)}"></span>${esc(STL[l.st]||'')}・`:''}${esc(l.dept)}`:'—'}</td><td><button class="btn sm" data-cx="${esc(c)}">削除</button></td></tr>`}).join('')+(list.length>300?`<tr><td colspan="5" class="empty">ほか${list.length-300}件（絞り込んでください）</td></tr>`:'')||'<tr><td colspan="5" class="empty">チャネルが未登録です</td></tr>';
+}
+$('#odDays').onchange=()=>{commit({k:'cfg',key:'overdueDays',value:Number($('#odDays').value)});toast('未点検の日数を変更しました')};
+const addDept=()=>{const v=$('#dIn').value.trim();if(!v||M.depts.includes(v))return;$('#dIn').value='';commit({k:'dept',name:v})};
+$('#dAdd').onclick=addDept;$('#dIn').onkeydown=e=>{if(e.key==='Enter')addDept()};
+$('#dList').onclick=e=>{const i=e.target.dataset.di;if(i==null)return;const d=M.depts[i];if(!confirm2('d'+d,`もう一度押すと「${d}」を削除します`))return;commit({k:'deptdel',name:d});toast('削除しました')};
+const cleanCh=s=>String(s||'').replace(/[^0-9A-Za-z\-]/g,'');
+$('#cAdd').onclick=()=>{const c=cleanCh($('#cIn').value);if(!c)return;const d=$('#cDept').value;$('#cIn').value='';commit({k:'ch',ch:c,dept:d||M.ch[c]?.dept||'',kind:$('#cKind').value,home:$('#cHome').value});toast(`CH ${c} を登録しました`)};
+$('#bulkAdd').onclick=()=>{let n=0;const nd=new Set();
+  for(const line of $('#bulkTxt').value.split(/\r?\n/)){const[c,d]=line.split(/[,\t]/),cc=cleanCh(c),dd=(d||'').trim();if(!cc)continue;if(dd&&!M.depts.includes(dd)&&!nd.has(dd)){nd.add(dd);commit({k:'dept',name:dd})}commit({k:'ch',ch:cc,dept:dd||M.ch[cc]?.dept||'',kind:M.ch[cc]?.kind||'送信機'});n++}
+  if(!n)return;$('#bulkTxt').value='';toast(`${n}件 登録しました`)};
+$('#cFind').oninput=renderSet;
+$('#cList').onchange=e=>{const c=e.target.dataset.cd;if(!c)return;commit({k:'ch',ch:c,dept:e.target.value});toast(`CH ${c} の部署を変更しました`)};
+$('#cList').onclick=e=>{const c=e.target.dataset.cx;if(!c)return;if(!confirm2('c'+c,`もう一度押すと CH ${c} を削除します`))return;commit({k:'chdel',ch:c});toast('削除しました')};
+
+/* ===== QRラベル ===== */
+async function showLabels(){
+  if(!window.qrcode)await new Promise((res,rej)=>{const s=document.createElement('script');s.src='lib/qrcode.js';s.onload=res;s.onerror=rej;document.head.appendChild(s)});
+  const d=$('#lbDept').value,chs=Object.keys(M.ch).filter(c=>!d||M.ch[c].dept===d).sort(chSort);
+  $('#lbTitle').textContent=`${d||'全チャネル'}　${chs.length}枚`;
+  $('#sheet').innerHTML=chs.map(c=>{const q=qrcode(0,'M');q.addData('TX-'+c);q.make();
+    return `<div class="lb">${q.createSvgTag({cellSize:2,margin:0,scalable:true})}<div><b>${esc(c)}</b><small>${esc(M.ch[c].dept||'')}${M.ch[c].home==='ME在庫'?'・ME在庫':''}</small></div></div>`}).join('');
+  $('#labels').hidden=false;
+}
+$('#lbShow').onclick=()=>showLabels().catch(()=>toast('ラベルの部品を読み込めませんでした'));
+$('#lbPrint').onclick=()=>window.print();$('#lbClose').onclick=()=>{$('#labels').hidden=true};
+
+/* ===== 起動 ===== */
+rebuild();renderAll();renderSync();setMode(lsGet('txc-mode','pad'));
+if(!sess)showLogin();else{load(true);flushSoon()}
+if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
+}
+</script>
+</body>
+</html>

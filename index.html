@@ -433,7 +433,9 @@ const LINKS = { round: './blood/', gas: './gas/', stock: './stock/',
   //        空欄なら、集約用GASから届くMEシフト（GAS）のURLを使います
   shift: './shift/',
   // stockCart：在庫管理の発注カートを直接開くURL。空欄なら在庫管理のトップを開きます（管理者だけに表示）
-  stockCart: './stock/#cart' };
+  stockCart: './stock/#cart',
+  // tx：送信機チェック（テレメータ送信機の点検・所在管理）
+  tx: './telemetry/' };
 const AUTO_REFRESH_MIN = 5;
 
 const $ = s => document.querySelector(s);
@@ -451,6 +453,7 @@ const IC = {
   round: SVG('<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="M9 13l2 2 4-4"/>'),
   gas: SVG('<rect x="7" y="6" width="10" height="15" rx="4"/><path d="M10 6V3h4v3"/><path d="M7 12h10"/>'),
   stock: SVG('<path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/>'),
+  tx: SVG('<rect x="7" y="7" width="10" height="14" rx="2"/><path d="M12 7V3"/><path d="M8.5 4.5a5 5 0 0 1 7 0"/><path d="M9 15l1.5-3 2 5 1.5-2h1"/>'),
   refresh: SVG('<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>'),
   file: SVG('<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 13h7M9 17h5"/>'),
   moon: SVG('<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>'),
@@ -1123,6 +1126,7 @@ function miniCalHtml() {
 function renderNav() {
   const n = src => rows('要対応').filter(r => r['業務'] === src && r['緊急度'] !== '未実施').length;
   const items = [['dash', 'ダッシュボード', '#', 0, true], ['round', '血液ガス点検', LINKS.round, S.model ? n('ラウンド') : 0], ['gas', '医療ガス点検', LINKS.gas, S.model ? n('医療ガス') : 0], ['stock', '物品管理', LINKS.stock, S.model ? n('在庫') : 0]];
+  if (LINKS.tx) items.push(['tx', '送信機チェック', LINKS.tx, 0]);
   // 管理者だけ：シフト管理（ダッシュボードの通行証を付けて開く。MEシフト側で管理者か確認する）
   if (isAdminUser() && shiftBase()) items.push(['shift', 'シフト管理', shiftAppUrl(), 0, false, true]);
   $('#nav').innerHTML = items.map(i => i[2]
@@ -1131,7 +1135,7 @@ function renderNav() {
   const tb = $('#tabbar');
   tb.style.gridTemplateColumns = `repeat(${items.length},minmax(0,1fr))`;
   tb.innerHTML = items.map(i => {
-    const label = i[0] === 'dash' ? 'ホーム' : i[1].replace('点検', '').replace('管理', '');
+    const label = i[0] === 'dash' ? 'ホーム' : i[0] === 'tx' ? '送信機' : i[1].replace('点検', '').replace('管理', '');
     return i[2] ? `<a href="${esc(i[2])}" ${i[4] ? 'aria-current="page"' : ''}${i[5] ? ' target="_blank" rel="noopener"' : ''}>${IC[i[0]]}${label}${i[3] ? `<i class="tbn">${i[3]}</i>` : ''}</a>`
       : `<a aria-disabled="true" style="opacity:.45">${IC[i[0]]}${label}</a>`;
   }).join('');
