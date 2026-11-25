@@ -117,7 +117,13 @@ td.r,th.r{text-align:right}.nw{white-space:nowrap}
 .tile .mk{position:absolute;right:4px;bottom:2px;font-size:10px;color:var(--mut)}
 .tile .ok{position:absolute;left:5px;bottom:2px;font-size:12px;color:var(--ac);font-weight:700}
 .prog{height:8px;background:var(--key);border-radius:99px;overflow:hidden;margin-top:8px}.prog i{display:block;height:100%;background:var(--ac)}
-.kpi{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:12px 0}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:8px;margin:12px 0}
+.kpi .hi{background:var(--ac);border-color:var(--ac);color:var(--acI)}.kpi .hi span{color:inherit;opacity:.85}
+.chart{width:100%;height:auto;display:block}
+.chart .p{fill:light-dark(#dfe6ea,#2c3439)}.chart .u{fill:var(--use)}.chart .sl{stroke:var(--lost);stroke-dasharray:4 3;stroke-width:1.2;fill:none}
+.chart text{font:10px var(--ff);fill:var(--mut)}
+.pct{display:inline-block;min-width:3.2em}
+.meter{display:inline-block;width:56px;height:6px;background:var(--key);border-radius:3px;vertical-align:middle;margin-left:6px;overflow:hidden}.meter i{display:block;height:100%;background:var(--use)}
 .kpi div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
 .kpi b{display:block;font:700 26px/1.1 var(--ff)}.kpi span{font-size:13px;color:var(--mut)}
 @media(max-width:640px){.kpi{grid-template-columns:repeat(3,minmax(0,1fr))}}
@@ -171,14 +177,15 @@ header{gap:6px;flex-wrap:wrap}header h1{font-size:16px}nav{width:100%}nav button
 .pgHead{display:flex;justify-content:space-between;align-items:flex-end;gap:6mm;padding-bottom:3mm;border-bottom:1.2mm solid #0b7a75}
 .pgHead .ey{font-size:9pt;font-weight:700;color:#0b7a75;letter-spacing:.04em}
 .pgHead h2{margin:.5mm 0 0;font-size:30pt;line-height:1;font-weight:800;color:#0e1a22}
-.pgHead .when{text-align:right;font-size:8.5pt;color:#55626b;line-height:1.5}
+.pgHead>div:first-child{flex:1 1 auto}.pgHead .ey{white-space:nowrap}
+.pgHead .when{flex:none;white-space:nowrap;text-align:right;font-size:8.5pt;color:#55626b;line-height:1.5}
 .stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2.5mm;margin:4mm 0}
 .stats div{border:0.3mm solid #d4dde2;border-radius:2.5mm;padding:2mm 3mm;background:#f6f9fa}
 .stats b{display:block;font-size:calc(18pt*var(--s));line-height:1.1;font-variant-numeric:tabular-nums}
 .stats span{font-size:8pt;color:#55626b}
 .stats .bad{background:#fdecea;border-color:#f3b8b2}.stats .bad b{color:#c62828}
-.secT{display:flex;align-items:baseline;gap:3mm;margin:1mm 0 2mm;font-weight:800;font-size:11pt}
-.secT small{font-weight:400;color:#55626b;font-size:8.5pt}
+.secT{display:flex;align-items:baseline;gap:3mm;white-space:nowrap;margin:1mm 0 2mm;font-weight:800;font-size:11pt}
+.secT small{white-space:normal;font-weight:400;color:#55626b;font-size:8.5pt}
 .slots{display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:calc(2mm*var(--s))}
 .bx{position:relative;border:0.3mm solid #cfd8dd;border-radius:2mm;padding:calc(1.8mm*var(--s)) 2mm calc(1.4mm*var(--s));min-height:calc(17mm*var(--s));background:#fff;overflow:hidden}
 .bx::before{content:"";position:absolute;left:0;right:0;top:0;height:1.3mm;background:#c9d2d8}
@@ -186,6 +193,7 @@ header{gap:6px;flex-wrap:wrap}header h1{font-size:16px}nav{width:100%}nav button
 .bx b{display:block;font-size:calc(15pt*var(--s));line-height:1.15;font-variant-numeric:tabular-nums;margin-top:.6mm}
 .bx .st{font-size:calc(8.5pt*var(--s));font-weight:700}
 .bx .rs{font-size:calc(7.5pt*var(--s));color:#55626b;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bx .rs.dt{padding-right:7mm}
 .bx .dt{font-size:calc(6.5pt*var(--s));color:#8a969e}
 .bx .mk{display:inline-block;font-size:6.5pt;font-style:normal;border:0.25mm solid currentColor;border-radius:1mm;padding:0 .8mm;margin-left:1mm;vertical-align:1px}
 .bx.s-use::before{background:#1f6fd1}.bx.s-use{background:#f1f6fd}.bx.s-use .st{color:#1f6fd1}
@@ -196,7 +204,15 @@ header{gap:6px;flex-wrap:wrap}header h1{font-size:16px}nav{width:100%}nav button
 .bx.empty b{color:#c3ccd2;font-weight:400;font-size:calc(9pt*var(--s));margin-top:1.5mm}
 .bx.empty i{position:absolute;left:2mm;right:2mm;bottom:2.6mm;border-bottom:0.25mm solid #cfd8dd}
 .bx.over{border:0.5mm dashed #c62828}.bx.over .no{color:#c62828;font-weight:700}
-.pgHead,.stats,.secT,.slots,.pgFoot{flex:none}
+.mst{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2mm;margin-bottom:2mm}
+.mst div{border-left:1mm solid #0b7a75;padding:.6mm 0 .6mm 2mm}
+.mst b{display:block;font-size:13pt;line-height:1.1;font-variant-numeric:tabular-nums}.mst span{font-size:7.5pt;color:#55626b}
+.mst .bad{border-color:#c62828}.mst .bad b{color:#c62828}
+.pg .chart{height:24mm;width:100%}.pg .chart .p{fill:#e3e9ec}.pg .chart .u{fill:#1f6fd1}.pg .chart text{font-size:8px;fill:#6b7880}
+.pg .chart .sl{stroke:#c62828}
+.bx .op{position:absolute;right:1.6mm;bottom:1.4mm;font-size:calc(7pt*var(--s));font-weight:700;color:#1f6fd1;font-variant-numeric:tabular-nums}
+.mnote{font-size:7pt;color:#6b7880;margin:.5mm 0 0}
+.pgHead,.stats,.secT,.slots,.mst,.chart,.mnote,.pgFoot{flex:none}
 .notes{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;margin-top:4mm}
 .notes .area{flex:1;border:0.3mm solid #cfd8dd;border-radius:2mm;padding:1mm 3mm;background-image:repeating-linear-gradient(transparent 0 7.4mm,#dfe6ea 7.4mm 7.6mm);background-origin:content-box;line-height:7.6mm;font-size:10pt}
 .notes [contenteditable]{outline:none;white-space:pre-wrap;word-break:break-all;min-height:7.6mm}
@@ -290,14 +306,15 @@ header{gap:6px;flex-wrap:wrap}header h1{font-size:16px}nav{width:100%}nav button
   </div>
   <p class="meta num" id="rng"></p>
   <div class="kpi" id="kpi"></div>
+  <div class="card" id="chartCard" style="margin-bottom:12px"><p class="lbl">使用中の台数（日ごと）<span style="font-weight:400">　青＝使用中、灰＝その範囲にある台数、赤の点線＝受信側の枠数（部署を選んだとき）</span></p><div id="chartBox"></div><p class="meta" style="margin:6px 0 0">稼働率＝使用中だったCH・日数 ÷（CH数×日数）。点検のない日は、その前の最後の記録の状態が続いていたとして数えます。</p></div>
   <div class="card"><p class="lbl">異常・アラームの内訳</p><div class="bars" id="bars"></div></div>
   <div class="row" style="margin-top:12px">
     <button class="btn pri" data-csv="sum">チャネル別CSV</button><button class="btn" data-csv="dept">部署別CSV</button><button class="btn" data-csv="log">明細CSV</button><span class="lbl" id="csvMsg"></span>
   </div>
   <h3>部署別</h3>
-  <div class="card scroll"><table class="stack"><thead><tr><th>部署</th><th class="r">実施</th><th class="r">一括</th><th class="r">異常</th><th class="r">汚染</th><th class="r">未点検CH</th></tr></thead><tbody id="deptT"></tbody></table></div>
+  <div class="card scroll"><table class="stack"><thead><tr><th>部署</th><th class="r">稼働率</th><th class="r">平均使用</th><th class="r">最大使用</th><th class="r">枠使用率</th><th class="r">点検した日</th><th class="r">実施</th><th class="r">一括</th><th class="r">異常</th><th class="r">汚染</th><th class="r">未点検CH</th></tr></thead><tbody id="deptT"></tbody></table></div>
   <h3>チャネル別</h3>
-  <div class="card scroll"><table class="stack"><thead><tr><th>CH</th><th>登録部署</th><th class="r">実施</th><th class="r">一括</th><th>最終状況</th><th>点検結果</th><th>最終所在</th><th>最終点検</th></tr></thead><tbody id="sumT"></tbody></table></div>
+  <div class="card scroll"><table class="stack"><thead><tr><th>CH</th><th>登録部署</th><th class="r">稼働率</th><th class="r">使用日数</th><th class="r">実施</th><th class="r">一括</th><th>最終状況</th><th>点検結果</th><th>最終所在</th><th>最終点検</th></tr></thead><tbody id="sumT"></tbody></table></div>
   <h3>明細</h3>
   <div class="card scroll"><table class="stack"><thead><tr><th>日時</th><th>CH</th><th>所在</th><th>内容</th><th>点検結果</th><th>コメント</th><th>記録者</th></tr></thead><tbody id="logT"></tbody></table></div>
 </section>
@@ -372,7 +389,7 @@ header{gap:6px;flex-wrap:wrap}header h1{font-size:16px}nav{width:100%}nav button
 </div>
 
 <div id="snap" class="dlg pv" hidden>
-  <div class="lbBar pbar"><b style="flex:1 1 auto">部署ごとのCH一覧（1部署1枚）</b><select id="snapDept"></select><button class="btn pri" id="snapPrint">印刷</button><button class="btn" id="snapClose">閉じる</button></div>
+  <div class="lbBar pbar"><b style="flex:1 1 auto">部署ごとのCH一覧（1部署1枚）</b><select id="snapDept"></select><label class="row" style="gap:4px"><span class="lbl" style="margin:0">月次</span><input type="month" id="snapMonth"></label><button class="btn pri" id="snapPrint">印刷</button><button class="btn" id="snapClose">閉じる</button></div>
   <p class="meta noprint" style="margin:8px 14px 0">押した瞬間の所在で作っています。各ページの「備考」は押すと書き込め、保存されて次回も残ります。空欄のまま印刷すると手書き用の罫線になります。</p>
   <div class="pages" id="pages"></div>
 </div>
@@ -833,9 +850,30 @@ async function getRange(from,to){
   for(const op of Q){if(op.k==='e')for(const e of op.es)if(inR(e))m[e.id]=e;if(op.k==='d')delete m[op.e.id]}
   return{logs:Object.values(m),partial};
 }
+const statsCache={};
+async function getStats(from,to){
+  const k=from+'_'+to;if(statsCache[k]&&Date.now()-statsCache[k].at<60000)return statsCache[k].v;
+  try{const v=await call('stats',{from,to});statsCache[k]={at:Date.now(),v};return v}catch(e){return null}
+}
+const pct=(a,b)=>b?Math.round(a/b*100):null;
+const pctTxt=v=>v==null?'—':v+'%';
+/* 日ごとの棒グラフ（灰＝在室・範囲の台数、青＝使用中、赤点線＝枠数） */
+function chartSvg(days,present,use,slots,W=640,H=130){
+  const n=days.length;if(n<2)return'';
+  const mx=Math.max(1,...present,...use,slots||0),pl=24,pb=16,pt=6,cw=(W-pl-4)/n,bw=Math.max(1,cw*.72),y=v=>pt+(H-pt-pb)*(1-v/mx);
+  let g='';
+  for(let i=0;i<n;i++){const x=pl+i*cw+(cw-bw)/2;
+    if(present)g+=`<rect class="p" x="${x.toFixed(1)}" y="${y(present[i]).toFixed(1)}" width="${bw.toFixed(1)}" height="${(H-pb-y(present[i])).toFixed(1)}"/>`;
+    g+=`<rect class="u" x="${x.toFixed(1)}" y="${y(use[i]).toFixed(1)}" width="${bw.toFixed(1)}" height="${(H-pb-y(use[i])).toFixed(1)}"/>`}
+  const step=n<=31?Math.ceil(n/8):n<=92?7:30;let lab='';
+  for(let i=0;i<n;i+=step){const d=days[i].split('-');lab+=`<text x="${(pl+i*cw+cw/2).toFixed(1)}" y="${H-4}" text-anchor="middle">${+d[1]}/${+d[2]}</text>`}
+  const tick=[0,Math.round(mx/2),mx].map(v=>`<text x="${pl-4}" y="${(y(v)+3).toFixed(1)}" text-anchor="end">${v}</text>`).join('');
+  const sl=slots?`<line class="sl" x1="${pl}" x2="${W-4}" y1="${y(slots).toFixed(1)}" y2="${y(slots).toFixed(1)}"/>`:'';
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="日ごとの使用台数">${g}${sl}${tick}${lab}</svg>`;
+}
 async function loadReport(){
   const[from,to]=period();RP.from=from;RP.to=to;$('#rng').textContent='読み込み中…';
-  const r=await getRange(from,to);RP.logs=r.logs.sort((a,b)=>a.t-b.t);RP.partial=r.partial;drawReport();
+  const[r,st]=await Promise.all([getRange(from,to),getStats(from,to)]);RP.logs=r.logs.sort((a,b)=>a.t-b.t);RP.partial=r.partial;RP.stats=st;drawReport();
 }
 function drawReport(){
   const f=$('#fDept').value,logs=RP.logs.filter(x=>!f||x.dept===f||M.ch[x.ch]?.dept===f),insp=logs.filter(isInsp),map={},dm={};
@@ -845,24 +883,33 @@ function drawReport(){
   for(const x of insp){const d=dm[x.dept]||(dm[x.dept]={d:x.dept||'（なし）',n:0,b:0,ab:0,dirty:0,un:0});x.k==='一括'?d.b++:d.n++;if(isAbn(x))d.ab++;if(x.r1==='汚染')d.dirty++}
   RP.sum=Object.values(map).sort((a,b)=>chSort(a.ch,b.ch));
   for(const m of RP.sum)if(!m.n&&!m.b&&M.ch[m.ch]&&dm[m.reg])dm[m.reg].un++;
+  const ST=RP.stats;
+  if(ST){for(const d of Object.values(dm)){const x=ST.depts[d.d];if(!x)continue;const D=ST.days.length||1,av=x.chDays/D;
+      d.rate=pct(x.useDays,x.chDays);d.avgUse=(x.useDays/D).toFixed(1);d.maxUse=Math.max(0,...x.use);d.slotRate=x.slots?pct(av,x.slots):null;d.inspRate=pct(x.inspDays,x.chDays)}
+    for(const m of RP.sum){const c=ST.chs[m.ch];if(c){m.rate=pct(c.use,c.days);m.useDays=c.use}}}
   RP.depts=Object.values(dm);RP.view=logs;
   const cnt=k=>logs.filter(x=>kindOf(x)===k).length,unchk=RP.sum.filter(m=>!m.n&&!m.b&&M.ch[m.ch]).length;
   $('#rng').textContent=RP.from.replace(/-/g,'/')+(RP.from===RP.to?'':' 〜 '+RP.to.replace(/-/g,'/'))+(f?'　'+f:'')+(RP.partial?'　※通信できないため直近2日分のみ':'');
-  $('#kpi').innerHTML=[['実施した点検',cnt('点検')],['一括記録',cnt('一括')],['異常',insp.filter(isAbn).length],['未点検CH',unchk],['貸出',cnt('貸出')],['返却',cnt('返却')]].map(([k,v])=>`<div><b class="num">${v}</b><span>${k}</span></div>`).join('');
+  const fx=f&&ST?ST.depts[f]:null,rate=ST?(f?(fx?pct(fx.useDays,fx.chDays):null):pct(ST.total.use,ST.total.chDays)):null;
+  $('#kpi').innerHTML=`<div class="hi"><b class="num">${pctTxt(rate)}</b><span>稼働率${ST?'':'（通信できず）'}</span></div>`+[['実施した点検',cnt('点検')],['一括記録',cnt('一括')],['異常',insp.filter(isAbn).length],['未点検CH',unchk],['貸出',cnt('貸出')],['返却',cnt('返却')]].map(([k,v])=>`<div><b class="num">${v}</b><span>${k}</span></div>`).join('');
   const ab={};for(const x of insp){if(x.st==='use'&&x.r1&&x.r1!=='問題なし'){const k=x.r1==='テクニカル'&&x.r2?'テク：'+x.r2:x.r1;ab[k]=(ab[k]||0)+1}
     if(x.st==='keep'){if(x.r1&&x.r1!=='正常')ab[x.r1]=(ab[x.r1]||0)+1;if(x.r2==='未実施')ab['清掃未実施']=(ab['清掃未実施']||0)+1}
     if(x.st==='lost')ab['紛失']=(ab['紛失']||0)+1;if(x.st==='repair')ab['修理中']=(ab['修理中']||0)+1}
   const top=Object.entries(ab).sort((a,b)=>b[1]-a[1]),mx=top[0]?.[1]||1;
+  const days=ST?.days||[];
+  $('#chartCard').hidden=days.length<2;
+  if(days.length>=2){const x=f?ST.depts[f]:null;
+    $('#chartBox').innerHTML=x?chartSvg(days,x.present,x.use,x.slots):chartSvg(days,days.map(()=>ST.chCount),ST.useDaily,null)}
   $('#bars').innerHTML=top.map(([k,v])=>`<div><span>${esc(k)}</span><i style="width:${v/mx*100}%"></i><span class="num">${v}</span></div>`).join('')||'<p class="empty">この期間の異常・アラームはありません。</p>';
-  $('#deptT').innerHTML=RP.depts.map(d=>`<tr><td>${esc(d.d)}</td><td class="r num">${d.n}</td><td class="r num">${d.b}</td><td class="r num ${d.ab?'abn':''}">${d.ab}</td><td class="r num ${d.dirty?'abn':''}">${d.dirty}</td><td class="r num">${d.un}</td></tr>`).join('');
-  $('#sumT').innerHTML=RP.sum.map(m=>`<tr><td class="num"><b>${esc(m.ch)}</b></td><td>${esc(m.reg)}</td><td class="r num">${m.n}</td><td class="r num">${m.b}</td><td class="nw">${m.last?`<span class="dot d-${esc(m.last.st)}"></span>${esc(STL[m.last.st]||'')}`:'<span class="tag">未点検</span>'}</td><td class="${m.last&&isAbn(m.last)?'abn':''}">${m.last?esc(resTxt(m.last)):''}</td><td>${m.last?esc(m.last.dept):''}</td><td class="num nw">${m.last?esc(mdhm(m.last.t)):''}</td></tr>`).join('')||'<tr><td colspan="8" class="empty">データなし</td></tr>';
+  $('#deptT').innerHTML=RP.depts.map(d=>`<tr><td>${esc(d.d)}</td><td class="r num nw"><span class="pct">${pctTxt(d.rate)}</span>${d.rate!=null?`<span class="meter"><i style="width:${Math.min(100,d.rate)}%"></i></span>`:''}</td><td class="r num">${d.avgUse??'—'}</td><td class="r num">${d.maxUse??'—'}</td><td class="r num ${d.slotRate>100?'abn':''}">${pctTxt(d.slotRate)}</td><td class="r num">${pctTxt(d.inspRate)}</td><td class="r num">${d.n}</td><td class="r num">${d.b}</td><td class="r num ${d.ab?'abn':''}">${d.ab}</td><td class="r num ${d.dirty?'abn':''}">${d.dirty}</td><td class="r num">${d.un}</td></tr>`).join('');
+  $('#sumT').innerHTML=RP.sum.map(m=>`<tr><td class="num"><b>${esc(m.ch)}</b></td><td>${esc(m.reg)}</td><td class="r num">${pctTxt(m.rate)}</td><td class="r num">${m.useDays??'—'}</td><td class="r num">${m.n}</td><td class="r num">${m.b}</td><td class="nw">${m.last?`<span class="dot d-${esc(m.last.st)}"></span>${esc(STL[m.last.st]||'')}`:'<span class="tag">未点検</span>'}</td><td class="${m.last&&isAbn(m.last)?'abn':''}">${m.last?esc(resTxt(m.last)):''}</td><td>${m.last?esc(m.last.dept):''}</td><td class="num nw">${m.last?esc(mdhm(m.last.t)):''}</td></tr>`).join('')||'<tr><td colspan="8" class="empty">データなし</td></tr>';
   $('#logT').innerHTML=logs.slice().reverse().slice(0,300).map(x=>`<tr><td class="num nw">${esc(mdhm(x.t))}</td><td class="num"><b>${esc(x.ch)}</b></td><td>${esc(x.dept)}</td><td class="nw"><span class="dot d-${esc(x.st)}"></span>${esc(MOVE[x.st]?STL[x.st]:STL[x.st]+(x.k==='一括'?'（一括）':''))}</td><td class="${isAbn(x)?'abn':''}">${esc(resTxt(x))}</td><td>${esc(x.memo)}</td><td>${esc(x.by)}</td></tr>`).join('')||'<tr><td colspan="7" class="empty">記録なし</td></tr>';
 }
 const csvQ=v=>{v=String(v??'');return/[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
 $$('[data-csv]').forEach(b=>b.onclick=()=>{
   const k=b.dataset.csv,P={d:'日次',w:'週次',m:'月次',y:'年次'}[per];
-  const rows=k==='sum'?[['CH','登録部署','実施','一括','最終管理状況','点検結果1','点検結果2','最終所在','最終点検'],...RP.sum.map(m=>[m.ch,m.reg,m.n,m.b,m.last?STL[m.last.st]:'未点検',m.last?.r1||'',m.last?.r2||'',m.last?.dept||'',m.last?full(m.last.t):''])]
-    :k==='dept'?[['部署','実施','一括','異常','汚染','未点検CH'],...RP.depts.map(d=>[d.d,d.n,d.b,d.ab,d.dirty,d.un])]
+  const rows=k==='sum'?[['CH','登録部署','稼働率(%)','使用日数','実施','一括','最終管理状況','点検結果1','点検結果2','最終所在','最終点検'],...RP.sum.map(m=>[m.ch,m.reg,m.rate??'',m.useDays??'',m.n,m.b,m.last?STL[m.last.st]:'未点検',m.last?.r1||'',m.last?.r2||'',m.last?.dept||'',m.last?full(m.last.t):''])]
+    :k==='dept'?[['部署','稼働率(%)','平均使用台数','最大使用台数','枠使用率(%)','点検した日(%)','実施','一括','異常','汚染','未点検CH'],...RP.depts.map(d=>[d.d,d.rate??'',d.avgUse??'',d.maxUse??'',d.slotRate??'',d.inspRate??'',d.n,d.b,d.ab,d.dirty,d.un])]
     :[['日時','CH','所在','記録種別','管理状況','点検結果1','点検結果2','コメント','記録者','登録'],...RP.view.map(x=>[full(x.t),x.ch,x.dept,kindOf(x),MOVE[x.st]?'':STL[x.st]||'',x.r1||'',x.r2||'',x.memo,x.by,x.u?'未登録':'登録済'])];
   const text='﻿'+rows.map(r=>r.map(csvQ).join(',')).join('\r\n');
   const name=`送信機_${P}_${{sum:'チャネル別',dept:'部署別',log:'明細'}[k]}_${RP.from}${RP.from===RP.to?'':'_'+RP.to}.csv`;
@@ -915,16 +962,16 @@ function deptGroups(){
   return by;
 }
 function snapDepts(){const by=deptGroups();return[...M.depts,...Object.keys(by).filter(d=>!M.depts.includes(d))].filter(d=>by[d]?.length||(M.info[d]?.slots||0)>0)}
-function boxOf(c,d,i,over){
-  const l=M.last[c],reg=M.ch[c];
+function boxOf(c,d,i,over,MS){
+  const l=M.last[c],reg=M.ch[c],op=MS?.chs?.[c]?pct(MS.chs[c].use,MS.chs[c].days):null;
   const bad=l&&l.st==='keep'&&(l.r1==='破損'||l.r1==='汚染');
   const cls=bad?'s-bad':l?.st?'s-'+l.st:'';
   const st=bad?l.r1:l?.st?STL[l.st]:'点検記録なし';
   const rs=l?.st&&!bad?resTxt(l):'',dt=l?.t?mdhm(l.t)+(l.by?' '+l.by:''):'';
   const mk=(l?.lt&&d!==ME_ROOM?'<i class="mk">貸出</i>':'')+(!reg?'<i class="mk">未登録</i>':'')+(reg&&reg.dept&&reg.dept!==d&&!l?.lt?`<i class="mk">${esc(reg.dept)}から</i>`:'')+(reg?.kind&&reg.kind!=='送信機'?`<i class="mk">${esc(reg.kind==='ベッドサイドモニタ'?'BSM':reg.kind)}</i>`:'');
-  return `<div class="bx ${cls}${over?' over':''}"><span class="no">${over?'枠外':i}</span><b>${esc(c)}</b><span class="st">${esc(st)}</span>${mk}<span class="rs">${esc(rs||'\u00a0')}</span><span class="rs dt">${esc(dt)}</span></div>`;
+  return `<div class="bx ${cls}${over?' over':''}"><span class="no">${over?'枠外':i}</span>${op!=null?`<span class="op" title="月の稼働率">${op}%</span>`:''}<b>${esc(c)}</b><span class="st">${esc(st)}</span>${mk}<span class="rs">${esc(rs||'\u00a0')}</span><span class="rs dt">${esc(dt)}</span></div>`;
 }
-function pageOf(d,by,n,N){
+function pageOf(d,by,n,N,MS){
   const cs=(by[d]||[]).sort(chSort),info=M.info[d]||{},slots=info.slots===''||info.slots==null?null:Number(info.slots);
   const use=cs.filter(c=>M.last[c]?.st==='use').length;
   const issue=cs.filter(c=>{const l=M.last[c];return l&&(l.st==='repair'||l.st==='lost'||(l.st==='keep'&&(l.r1==='破損'||l.r1==='汚染')))}).length;
@@ -932,7 +979,7 @@ function pageOf(d,by,n,N){
   const cells=Math.max(cs.length,slots||0),cols=cells<=8?4:cells<=20?5:cells<=30?6:7;
   let boxes='';
   for(let i=0;i<cells;i++){
-    if(i<cs.length)boxes+=boxOf(cs[i],d,i+1,slots!=null&&i>=slots);
+    if(i<cs.length)boxes+=boxOf(cs[i],d,i+1,slots!=null&&i>=slots,MS);
     else boxes+=`<div class="bx empty"><span class="no">${i+1}</span><b>空き</b><i></i></div>`;
   }
   const stat=(v,k,bad)=>`<div class="${bad?'bad':''}"><b>${v}</b><span>${k}</span></div>`;
@@ -941,14 +988,34 @@ function pageOf(d,by,n,N){
     <div class="stats">${stat(cs.length+'<small style="font-size:9pt">台</small>','在室のCH')}${stat(slots!=null?slots:'—','受信側の枠数')}${stat(free==null?'—':free<0?'+'+(-free):free,free!=null&&free<0?'枠を超過':'空き枠',free!=null&&free<0)}${stat(use,'使用中')}${stat(issue,'要対応',issue>0)}</div>
     <div class="secT">受信枠と在室のCH<small>${slots!=null?`枠 ${slots} のうち ${Math.min(cs.length,slots)} を使用${free<0?`・${-free}台が枠外`:''}`:'受信側の枠数は未設定です（設定画面で入力）'}</small></div>
     <div class="slots" style="--cols:${cols}">${boxes||'<p style="color:#8a969e">この部署にあるCHはありません</p>'}</div>
+    ${monthSec(d,MS,slots)}
     <div class="notes"><div class="secT">備考</div><div class="area"><div contenteditable="plaintext-only" data-note="${esc(d)}" data-ph="押して記入（空欄なら手書き用の罫線になります）"></div></div></div>
     <div class="pgFoot"><span class="lg">色：<i style="background:#1f6fd1"></i>使用中<i style="background:#1d8a4e"></i>保管中<i style="background:#c62828"></i>修理中・紛失・汚染・破損<i style="background:#c9d2d8"></i>記録なし　要対応＝修理中・紛失・汚染・破損　右上の番号は枠の通し番号（受信機の登録位置ではありません）</span><span>${n} / ${N}</span></div>
   </section>`;
 }
+function monthSec(d,MS,slots){
+  const ym=$('#snapMonth').value,[y,m]=(ym||'').split('-');
+  const title=`月次の集計<small>${y?`${+y}年${+m}月`:''}${MS?.days?.length?`（${+MS.from.slice(8)}日〜${+MS.to.slice(8)}日・${MS.days.length}日間）`:''}</small>`;
+  const x=MS?.depts?.[d];
+  if(!MS)return `<div class="secT">${title}</div><p class="mnote">通信できないため、月次の集計は表示できません。</p>`;
+  if(!x||!MS.days.length)return `<div class="secT">${title}</div><p class="mnote">この月の記録はありません。</p>`;
+  const D=MS.days.length,av=x.chDays/D,box=(v,k,bad)=>`<div class="${bad?'bad':''}"><b>${v}</b><span>${k}</span></div>`;
+  const sr=x.slots?pct(av,x.slots):null;
+  return `<div class="secT">${title}</div>
+    <div class="mst">${box(pctTxt(pct(x.useDays,x.chDays)),'稼働率')}${box((x.useDays/D).toFixed(1)+'台','平均使用')}${box(Math.max(0,...x.use)+'台','最大使用')}${box(pctTxt(sr),'枠使用率（平均在室÷枠）',sr>100)}${box(pctTxt(pct(x.inspDays,x.chDays)),'点検した日の割合')}${box(x.abn+'件','異常（うち汚染 '+x.dirty+'）',x.abn>0)}</div>
+    ${chartSvg(MS.days,x.present,x.use,x.slots,640,96)}
+    <p class="mnote">青＝使用中の台数、灰＝在室の台数、赤点線＝受信側の枠数。箱の右下の％は各CHの月の稼働率。点検のない日は前の記録の状態が続いたとして数えています。</p>`;
+}
+let MSnap=null;
+async function loadSnapStats(){
+  const ym=$('#snapMonth').value;if(!ym){MSnap=null;return}
+  const[y,m]=ym.split('-').map(Number),from=`${y}-${pad2(m)}-01`,last=new Date(y,m,0).getDate(),to=`${y}-${pad2(m)}-${pad2(last)}`;
+  MSnap=await getStats(from,to);
+}
 function renderSnap(){
   const by=deptGroups(),all=snapDepts(),sel=$('#snapDept').value;
   const list=sel?[sel]:all;
-  $('#pages').innerHTML=list.map((d,i)=>pageOf(d,by,i+1,list.length)).join('');
+  $('#pages').innerHTML=list.map((d,i)=>pageOf(d,by,i+1,list.length,MSnap)).join('');
   for(const el of $$('#pages [data-note]'))el.textContent=M.info[el.dataset.note]?.note||'';
   zoomPages();fitPages();
 }
@@ -962,10 +1029,13 @@ function fitPages(){
 }
 function zoomPages(){const w=$('#snap').clientWidth-16,px=210*96/25.4;$('#pages').style.zoom=Math.min(1,w/px).toFixed(3)}
 addEventListener('resize',()=>{if(!$('#snap').hidden)zoomPages()});
-$('#snapBtn').onclick=()=>{
+$('#snapMonth').onchange=async()=>{$('#pages').style.opacity=.4;await loadSnapStats();$('#pages').style.opacity='';renderSnap()};
+$('#snapBtn').onclick=async()=>{
+  if(!$('#snapMonth').value)$('#snapMonth').value=dkey(Date.now()).slice(0,7);
   const cur=$('#snapDept').value;
   $('#snapDept').innerHTML='<option value="">全部署（1部署1枚）</option>'+snapDepts().map(d=>`<option${d===cur?' selected':''}>${esc(d)}</option>`).join('');
-  $('#snap').hidden=false;renderSnap();$('#snap').scrollTop=0};
+  $('#snap').hidden=false;renderSnap();$('#snap').scrollTop=0;
+  await loadSnapStats();renderSnap()};
 $('#snapDept').onchange=renderSnap;
 $('#snapClose').onclick=()=>{$('#snap').hidden=true};
 $('#snapPrint').onclick=()=>{fitPages();printOv('#snap')};
