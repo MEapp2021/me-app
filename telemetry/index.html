@@ -134,8 +134,9 @@ td.r,th.r{text-align:right}.nw{white-space:nowrap}
 .chip button{border:0;background:none;color:var(--mut);font-size:16px;width:28px;height:28px;border-radius:50%;cursor:pointer}
 .empty{color:var(--mut);font-size:14px;padding:10px 0}
 .scroll{overflow-x:auto}
-#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(140px);background:var(--ink);color:var(--bg);padding:12px 16px;border-radius:12px;font-weight:600;transition:transform .2s;z-index:9;display:flex;gap:12px;align-items:center;max-width:92vw}
-#toast.on{transform:translateX(-50%)}
+#toast{position:fixed;left:50%;top:var(--toastTop,64px);bottom:auto;transform:translateX(-50%) translateY(-12px);opacity:0;pointer-events:none;transition:transform .18s,opacity .18s;background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:12px;font-weight:600;font-size:15px;box-shadow:0 6px 20px #0003;z-index:30;display:flex;gap:12px;align-items:center;max-width:92vw}
+#toast.on{transform:translateX(-50%);opacity:1}
+#toast button{pointer-events:auto}
 #toast span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #toast button{background:none;border:1px solid currentColor;color:inherit;border-radius:8px;padding:4px 10px;font:600 14px var(--ff);cursor:pointer;flex:none}
 @media(prefers-reduced-motion:reduce){#toast{transition:none}}
@@ -558,7 +559,7 @@ $('#whoBtn').onclick=()=>{$('nav button[data-v=set]').click()};
 
 /* ===== toast ===== */
 let tT,undoFn=null;
-function toast(msg,undo){$('#tMsg').textContent=msg;undoFn=undo||null;$('#tUndo').hidden=!undo;$('#toast').classList.add('on');clearTimeout(tT);tT=setTimeout(()=>$('#toast').classList.remove('on'),undo?5000:2400)}
+function toast(msg,undo){$('#toast').style.setProperty('--toastTop',Math.round($('header').getBoundingClientRect().bottom+8)+'px');$('#tMsg').textContent=msg;undoFn=undo||null;$('#tUndo').hidden=!undo;$('#toast').classList.add('on');clearTimeout(tT);tT=setTimeout(()=>$('#toast').classList.remove('on'),undo?4000:2200)}
 $('#tUndo').onclick=()=>{const f=undoFn;undoFn=null;$('#toast').classList.remove('on');f&&f()};
 let pend=null;const confirm2=(key,msg)=>{if(pend!==key){pend=key;toast(msg);setTimeout(()=>{if(pend===key)pend=null},3500);return false}pend=null;return true};
 
@@ -585,9 +586,16 @@ const chIn=$('#chIn');let curCh='',F={st:'',r1:'',r2:''};
 $$('#inMode button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
 function setMode(m){$$('#inMode button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.m===m));$('#padBox').hidden=m!=='pad';$('#deptBox').hidden=m!=='dept';lsSet('txc-mode',m);if(m==='dept')renderTiles()}
 /* テンキーは指が触れた瞬間に反応させる（クリック待ちの遅れ・ダブルタップ拡大を防ぐ） */
+/* テンキーを押した指が離れたときのクリックが、テンキーがたたまれた後にその位置へ来た
+   別のボタン（「ME室へ返却」など）に当たってしまうのを防ぐ */
+let guardUntil=0;
+const releaseGuard=()=>{if(guardUntil===Infinity)guardUntil=Date.now()+500};
+document.addEventListener('pointerup',releaseGuard,true);
+document.addEventListener('pointercancel',releaseGuard,true);
+document.addEventListener('click',e=>{if(Date.now()<guardUntil&&!e.target.closest('#pad,#lPad')){e.preventDefault();e.stopPropagation()}},true);
 function keypad(el,fn){
   const hit=b=>{b.classList.add('hit');setTimeout(()=>b.classList.remove('hit'),110)};
-  el.addEventListener('pointerdown',e=>{const b=e.target.closest('button');if(!b)return;e.preventDefault();hit(b);fn(b)});
+  el.addEventListener('pointerdown',e=>{const b=e.target.closest('button');if(!b)return;e.preventDefault();guardUntil=Infinity;hit(b);fn(b)});
   el.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||e.detail!==0)return;fn(b)});   // キーボード操作のときだけ
   el.addEventListener('contextmenu',e=>e.preventDefault());
 }
