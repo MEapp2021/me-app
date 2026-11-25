@@ -3,7 +3,7 @@
  *   → ネットがあるときは常に最新版、ないときは前回の画面で起動
  * ・GASへの通信（記録の送信）はここでは扱わない（画面の送信箱が担当）
  * 画面のファイルを大きく変えたときは VERSION を上げる */
-const VERSION = 'tx-me-v2';
+const VERSION = 'tx-me-v3';
 const FILES = ['./', './index.html', './lib/jsQR.js', './lib/qrcode.js'];
 
 self.addEventListener('install', e => {
