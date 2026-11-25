@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>送信機チェック</title>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -21,9 +21,11 @@
 --use:light-dark(#1f6fd1,#5aa9ff);--keep:light-dark(#1d8a4e,#4fd18b);--repair:light-dark(#c46a00,#ffaa4d);--lost:light-dark(#c62828,#ff6b62);--other:light-dark(#66727a,#a5b1b8);--warnBg:light-dark(#fdecea,#3a1d1b)}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--ff);overflow-x:clip}
+html{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--ff);overflow:hidden;height:100%;height:100dvh;display:flex;flex-direction:column;overscroll-behavior:none;touch-action:manipulation;-webkit-text-size-adjust:100%}
+button,a,select,input{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .num{font-family:var(--ff);font-variant-numeric:tabular-nums}
-header{display:flex;align-items:center;gap:10px;padding:10px max(4vw,14px);background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+header{flex:none;display:flex;align-items:center;gap:10px;padding:10px max(2vw,14px);padding-top:max(10px,env(safe-area-inset-top));background:var(--card);border-bottom:1px solid var(--line);z-index:5}
 header h1{font-size:18px;margin:0;font-weight:700;flex:1;white-space:nowrap}
 #sync{font-size:12px;font-weight:600;padding:4px 10px;border-radius:99px;background:var(--key);color:var(--mut);white-space:nowrap;border:0;cursor:pointer}
 #sync.wait{background:light-dark(#fff4e0,#3a2a12);color:var(--repair)}#sync.off{background:var(--warnBg);color:var(--lost)}
@@ -32,15 +34,33 @@ nav button,.seg button{border:0;background:none;color:var(--mut);font:600 15px v
 nav button[aria-pressed=true],.seg button[aria-pressed=true]{background:var(--card);color:var(--ink);box-shadow:0 1px 3px #0002}
 .seg{display:inline-flex;background:var(--key);border-radius:11px;padding:3px}
 .seg button{min-height:36px;padding:6px 12px}
-main{max-width:1040px;margin:0 auto;padding:14px max(4vw,14px) 70px}
+main{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#v-report,#v-set,#v-today{max-width:1040px;margin:0 auto;padding:14px max(4vw,14px) calc(40px + env(safe-area-inset-bottom))}
+#v-check{height:100%;display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr) minmax(0,360px);gap:12px;padding:12px max(2vw,12px);padding-bottom:max(12px,env(safe-area-inset-bottom))}
+#v-check>.card{min-height:0;overflow:auto;overscroll-behavior:contain}
+#todayCol{display:flex;flex-direction:column;padding:12px}
+#todayCol .tlist{flex:1;min-height:0;overflow:auto}
+.navToday{display:none}
+@media(max-width:1099px){#v-check{grid-template-columns:minmax(0,340px) minmax(0,1fr)}#todayCol{display:none}.navToday{display:block}}
+@media(max-width:759px){#v-check{display:flex;flex-direction:column;gap:8px;padding:8px 8px max(8px,env(safe-area-inset-bottom))}
+  #formCol{order:1;flex:1;min-height:0}#inCol{order:2;flex:none;overflow:visible;padding:10px}
+  #formCol{padding:12px 12px 0}#formCol #save{position:sticky;bottom:0;margin-top:12px;box-shadow:0 -10px 14px var(--card)}#formCol .mv{margin-bottom:12px}
+  #inCol .tiles{max-height:30vh}
+  #inCol.compact .pad,#inCol.compact #deptBox,#inCol.compact>.row{display:none}
+  #inCol.compact #padBox{display:block!important;margin-top:0}
+  #inCol.compact #chIn{font-size:22px;padding:6px;text-align:left;padding-left:12px;background:var(--card)}
+  #inCol.compact::after{content:"タップでテンキー";position:absolute;right:22px;bottom:21px;font-size:12px;color:var(--mut);pointer-events:none}
+  #inCol{position:relative}#chIn{font-size:32px;padding:6px}.pad{gap:6px;margin-top:8px}.pad button{min-height:50px}}
+.tl{display:grid;grid-template-columns:3.2em minmax(0,1fr) auto;gap:2px 8px;align-items:center;padding:8px 2px;border-bottom:1px solid var(--line)}
+.tl .tm{font-size:13px;color:var(--mut)}.tl b{font-size:17px}.tl small{grid-column:2;color:var(--mut);font-size:12px}
+.tl .r{grid-row:1/3;grid-column:3}
+.tlHead{display:flex;align-items:center;gap:8px;margin:0 0 6px}.tlHead h3{margin:0}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
-.grid{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:14px;align-items:start}
-@media(max-width:760px){.grid{grid-template-columns:minmax(0,1fr)}}
 #chIn{width:100%;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);font:700 44px/1 var(--ff);text-align:center;padding:10px;letter-spacing:.04em}
 #chIn:focus{outline:none;border-color:var(--ac)}
 .pad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
-.pad button{min-height:56px;border:0;border-radius:12px;background:var(--key);color:var(--ink);font:600 26px var(--ff);cursor:pointer}
-.pad button:active{background:var(--line)}
+.pad button{min-height:56px;border:0;border-radius:12px;background:var(--key);color:var(--ink);font:600 26px var(--ff);cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:background .08s,transform .08s}
+.pad button:active,.pad button.hit{background:var(--line);transform:scale(.96)}
 .pad .fn{font:600 15px var(--ff);color:var(--mut)}
 .lbl{font-size:13px;color:var(--mut);margin:0 0 4px;font-weight:600}
 .res h2{margin:0;font:700 34px/1.1 var(--ff);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -52,7 +72,7 @@ select,input[type=text],input[type=date],textarea{font:16px var(--ff);color:var(
 select:focus-visible,input:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 .f{flex:1 1 160px}.w100{width:100%}
 .sts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
-@media(max-width:420px){.sts{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:420px){.sts{gap:4px}.sts button{font-size:14px;min-height:46px;padding:0 2px}}
 .sts button{min-height:50px;border:2px solid var(--line);background:var(--card);border-radius:12px;font:700 15px var(--ff);color:var(--ink);cursor:pointer}
 .sts button[aria-pressed=true]{color:#fff;border-color:transparent}
 :root[data-theme=dark] .sts button[aria-pressed=true]{color:#0b0d0e}
@@ -64,7 +84,7 @@ select:focus-visible,input:focus-visible,textarea:focus-visible,button:focus-vis
 .chips button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .chips button.bad[aria-pressed=true]{background:var(--lost);border-color:var(--lost);color:#fff}
 #save{width:100%;min-height:56px;margin-top:14px;border:0;border-radius:14px;background:var(--ac);color:var(--acI);font:700 18px var(--ff);cursor:pointer}
-#save:disabled{opacity:.35;cursor:default}
+#save:disabled{background:var(--key);color:var(--mut);cursor:default}
 .btn{min-height:44px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:8px 14px;font:600 15px var(--ff);cursor:pointer}
 .btn.pri{background:var(--ac);border-color:var(--ac);color:var(--acI)}
 .btn.sm{min-height:34px;padding:4px 10px;font-size:13px}
@@ -108,14 +128,11 @@ textarea{width:100%;min-height:90px}
 [hidden]{display:none!important}
 #home{font-size:28px;line-height:1;text-decoration:none;color:var(--mut);padding:0 4px}
 #whoBtn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;font:600 13px var(--ff);padding:5px 12px;min-height:34px;cursor:pointer;white-space:nowrap;max-width:9em;overflow:hidden;text-overflow:ellipsis}
-.dlg{position:fixed;inset:0;background:#0008;z-index:20;display:grid;place-items:center;padding:16px}
-.dlgIn{background:var(--card);border-radius:18px;padding:18px;width:min(520px,100%);max-height:90vh;overflow:auto}
-.dlgIn h2{font-size:18px;margin:0}
 .names{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
 .names button{min-height:52px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;font:600 16px var(--ff);cursor:pointer}
 .names button[aria-pressed=true]{background:var(--ac);color:var(--acI);border-color:var(--ac)}
 @media(max-width:600px){table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:8px;border-bottom:1px solid var(--line)}.stack td{display:flow-root;border:0;padding:2px 0;padding-inline-start:6.5em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:6em;margin-inline-start:-6.5em;color:var(--mut)}.stack td:empty{display:none}
-header{gap:6px;flex-wrap:wrap}header h1{font-size:16px}nav{width:100%}nav button{flex:1;padding:6px}.pad button{min-height:48px}#chIn{font-size:36px;padding:8px}.pad{gap:6px}main{padding-top:10px}}
+header{gap:6px;flex-wrap:wrap}header h1{font-size:16px}nav{width:100%}nav button{flex:1;padding:6px}}
 .dlg{position:fixed;inset:0;background:var(--bg);z-index:20;overflow:auto}
 .dlg.dim{background:#000c;display:grid;place-items:center;padding:16px}
 .login{max-width:360px;margin:0 auto;padding:max(8vh,24px) 18px 24px;text-align:center}
@@ -138,7 +155,52 @@ header{gap:6px;flex-wrap:wrap}header h1{font-size:16px}nav{width:100%}nav button
 .lb{border:1px dashed #999;border-radius:2mm;height:26mm;display:flex;align-items:center;gap:2mm;padding:2mm;break-inside:avoid}
 .lb svg{width:20mm;height:20mm;flex:none}
 .lb b{display:block;font:700 7mm/1 var(--ff)}.lb small{font-size:2.6mm}
-@media print{body>*:not(#labels){display:none!important}#labels{position:static;overflow:visible}.lbBar{display:none}.sheet{padding:0}}
+.pv{background:#fff;color:#000;display:block}
+.pbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pages{padding:12px 0 40px;transform-origin:top center}
+.pg{--s:1;width:210mm;height:296.5mm;margin:0 auto 10mm;padding:12mm 12mm 9mm;background:#fff;color:#16202a;box-shadow:0 3px 18px #0003;display:flex;flex-direction:column;overflow:hidden;font:10pt/1.4 var(--ff);-webkit-print-color-adjust:exact;print-color-adjust:exact;box-sizing:border-box}
+.pgHead{display:flex;justify-content:space-between;align-items:flex-end;gap:6mm;padding-bottom:3mm;border-bottom:1.2mm solid #0b7a75}
+.pgHead .ey{font-size:9pt;font-weight:700;color:#0b7a75;letter-spacing:.04em}
+.pgHead h2{margin:.5mm 0 0;font-size:30pt;line-height:1;font-weight:800;color:#0e1a22}
+.pgHead .when{text-align:right;font-size:8.5pt;color:#55626b;line-height:1.5}
+.stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2.5mm;margin:4mm 0}
+.stats div{border:0.3mm solid #d4dde2;border-radius:2.5mm;padding:2mm 3mm;background:#f6f9fa}
+.stats b{display:block;font-size:calc(18pt*var(--s));line-height:1.1;font-variant-numeric:tabular-nums}
+.stats span{font-size:8pt;color:#55626b}
+.stats .bad{background:#fdecea;border-color:#f3b8b2}.stats .bad b{color:#c62828}
+.secT{display:flex;align-items:baseline;gap:3mm;margin:1mm 0 2mm;font-weight:800;font-size:11pt}
+.secT small{font-weight:400;color:#55626b;font-size:8.5pt}
+.slots{display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:calc(2mm*var(--s))}
+.bx{position:relative;border:0.3mm solid #cfd8dd;border-radius:2mm;padding:calc(1.8mm*var(--s)) 2mm calc(1.4mm*var(--s));min-height:calc(17mm*var(--s));background:#fff;overflow:hidden}
+.bx::before{content:"";position:absolute;left:0;right:0;top:0;height:1.3mm;background:#c9d2d8}
+.bx .no{position:absolute;right:1.6mm;top:1.8mm;font-size:6.5pt;color:#8a969e}
+.bx b{display:block;font-size:calc(15pt*var(--s));line-height:1.15;font-variant-numeric:tabular-nums;margin-top:.6mm}
+.bx .st{font-size:calc(8.5pt*var(--s));font-weight:700}
+.bx .rs{font-size:calc(7.5pt*var(--s));color:#55626b;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bx .dt{font-size:calc(6.5pt*var(--s));color:#8a969e}
+.bx .mk{display:inline-block;font-size:6.5pt;font-style:normal;border:0.25mm solid currentColor;border-radius:1mm;padding:0 .8mm;margin-left:1mm;vertical-align:1px}
+.bx.s-use::before{background:#1f6fd1}.bx.s-use{background:#f1f6fd}.bx.s-use .st{color:#1f6fd1}
+.bx.s-keep::before{background:#1d8a4e}.bx.s-keep .st{color:#1d8a4e}
+.bx.s-repair::before,.bx.s-lost::before,.bx.s-bad::before{background:#c62828}.bx.s-repair,.bx.s-lost,.bx.s-bad{background:#fdf1f0}.bx.s-repair .st,.bx.s-lost .st,.bx.s-bad .st{color:#c62828}
+.bx.s-other::before{background:#8a969e}
+.bx.empty{border-style:dashed;background:#fff}.bx.empty::before{display:none}
+.bx.empty b{color:#c3ccd2;font-weight:400;font-size:calc(9pt*var(--s));margin-top:1.5mm}
+.bx.empty i{position:absolute;left:2mm;right:2mm;bottom:2.6mm;border-bottom:0.25mm solid #cfd8dd}
+.bx.over{border:0.5mm dashed #c62828}.bx.over .no{color:#c62828;font-weight:700}
+.pgHead,.stats,.secT,.slots,.pgFoot{flex:none}
+.notes{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;margin-top:4mm}
+.notes .area{flex:1;border:0.3mm solid #cfd8dd;border-radius:2mm;padding:1mm 3mm;background-image:repeating-linear-gradient(transparent 0 7.4mm,#dfe6ea 7.4mm 7.6mm);background-origin:content-box;line-height:7.6mm;font-size:10pt}
+.notes [contenteditable]{outline:none;white-space:pre-wrap;word-break:break-all;min-height:7.6mm}
+.notes [contenteditable]:empty::before{content:attr(data-ph);color:#a8b3ba}
+@media screen{.notes [contenteditable]:focus{background:#fff8d655}}
+.pgFoot{display:flex;justify-content:space-between;gap:4mm;margin-top:3mm;font-size:7.5pt;color:#6b7880}
+.pgFoot .lg i{display:inline-block;width:2.4mm;height:2.4mm;border-radius:.6mm;margin:0 .8mm 0 2.5mm;vertical-align:-.2mm}
+@page{size:A4 portrait;margin:0}
+@media print{html,body{height:auto!important;overflow:visible!important;display:block!important;background:#fff!important}
+  body>*:not(.printing){display:none!important}.printing{position:static!important;overflow:visible!important;inset:auto!important;background:#fff!important;padding:0!important;margin:0!important}
+  .lbBar,.noprint{display:none!important}.sheet{padding:10mm}.pages{zoom:1!important;padding:0}
+  .pg{margin:0;box-shadow:none;height:296mm;break-after:page;page-break-after:always}.pg:last-child{break-after:auto;page-break-after:auto}
+  .notes [contenteditable]:empty::before{content:""}}
 </style>
 <script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
 </head>
@@ -150,6 +212,7 @@ header{gap:6px;flex-wrap:wrap}header h1{font-size:16px}nav{width:100%}nav button
   <button id="sync" title="保存の状態">読み込み中</button>
   <nav>
     <button data-v="check" aria-pressed="true">点検</button>
+    <button data-v="today" class="navToday" aria-pressed="false">今日</button>
     <button data-v="report" aria-pressed="false">集計</button>
     <button data-v="set" aria-pressed="false">設定</button>
   </nav>
@@ -157,8 +220,7 @@ header{gap:6px;flex-wrap:wrap}header h1{font-size:16px}nav{width:100%}nav button
 
 <main>
 <section id="v-check">
-  <div class="grid">
-    <div class="card">
+    <div class="card" id="inCol">
       <div class="row" style="justify-content:space-between">
         <div class="seg" id="inMode"><button data-m="pad" aria-pressed="true">テンキー</button><button data-m="dept" aria-pressed="false">部署から</button></div>
         <button class="btn sm" id="qrBtn">QRで読む</button>
@@ -181,7 +243,7 @@ header{gap:6px;flex-wrap:wrap}header h1{font-size:16px}nav{width:100%}nav button
       </div>
     </div>
 
-    <div class="card res">
+    <div class="card res" id="formCol">
       <div id="resBody"></div>
       <div id="form" hidden>
         <label><span class="lbl">いまの所在</span><select id="loc" class="w100"></select></label>
@@ -202,12 +264,18 @@ header{gap:6px;flex-wrap:wrap}header h1{font-size:16px}nav{width:100%}nav button
         </div>
       </div>
     </div>
-  </div>
-  <h3>今日の記録 <span class="tag num" id="todayN">0</span></h3>
-  <div class="card scroll"><table class="stack"><thead><tr><th>時刻</th><th>CH</th><th>所在</th><th>内容</th><th>点検結果</th><th>記録者</th><th></th></tr></thead><tbody id="todayT"></tbody></table><p class="empty" id="todayE">まだ記録はありません。</p></div>
+    <div class="card" id="todayCol">
+      <div class="tlHead"><h3>今日の記録</h3><span class="tag num" id="todayN">0</span></div>
+      <div class="tlist" id="todayL"></div>
+    </div>
+</section>
+<section id="v-today" hidden>
+  <div class="tlHead"><h3>今日の記録</h3><span class="tag num" id="todayN2">0</span></div>
+  <div class="card"><div id="todayL2"></div></div>
 </section>
 
 <section id="v-report" hidden>
+  <div class="row" style="margin-bottom:10px"><button class="btn pri" id="snapBtn">部署ごとのCH一覧を印刷（1部署1枚）</button><span class="lbl" style="margin:0">いまの所在で作ります</span></div>
   <div class="card now" id="nowCard"></div>
   <h3>期間の集計</h3>
   <div class="row">
@@ -242,9 +310,10 @@ header{gap:6px;flex-wrap:wrap}header h1{font-size:16px}nav{width:100%}nav button
     <div class="row"><select id="odDays"></select><span class="meta" style="margin:0">最後の点検からこの日数がたつと、タイルや集計で赤く出ます（修理中・紛失は除く）</span></div>
   </div>
   <div class="card" style="margin-top:12px">
-    <h3 style="margin-top:0">部署</h3>
+    <h3 style="margin-top:0">部署と受信側の枠数</h3>
+    <p class="meta" style="margin-top:0">枠数は、その部署のセントラルモニタ（受信側）に登録できるCHの数です。A4の一覧で「在室CH数／枠数」として使います。受信機のない部署は空欄のままにします。</p>
     <div class="row"><input type="text" id="dIn" class="f" placeholder="例：5B"><button class="btn pri" id="dAdd">追加</button></div>
-    <div class="chipl" id="dList"></div>
+    <div class="scroll" style="margin-top:8px"><table class="stack"><thead><tr><th>部署</th><th>枠数</th><th></th></tr></thead><tbody id="dList"></tbody></table></div>
   </div>
   <div class="card" style="margin-top:12px">
     <h3 style="margin-top:0">チャネル登録</h3>
@@ -297,7 +366,12 @@ header{gap:6px;flex-wrap:wrap}header h1{font-size:16px}nav{width:100%}nav button
   </div>
 </div>
 
-<div id="labels" class="dlg" hidden>
+<div id="snap" class="dlg pv" hidden>
+  <div class="lbBar pbar"><b style="flex:1 1 auto">部署ごとのCH一覧（1部署1枚）</b><select id="snapDept"></select><button class="btn pri" id="snapPrint">印刷</button><button class="btn" id="snapClose">閉じる</button></div>
+  <p class="meta noprint" style="margin:8px 14px 0">押した瞬間の所在で作っています。各ページの「備考」は押すと書き込め、保存されて次回も残ります。空欄のまま印刷すると手書き用の罫線になります。</p>
+  <div class="pages" id="pages"></div>
+</div>
+<div id="labels" class="dlg pv" hidden>
   <div class="lbBar"><b id="lbTitle" style="flex:1"></b><button class="btn pri" id="lbPrint">印刷</button><button class="btn" id="lbClose">閉じる</button></div>
   <div class="sheet" id="sheet"></div>
 </div>
@@ -307,9 +381,9 @@ header{gap:6px;flex-wrap:wrap}header h1{font-size:16px}nav{width:100%}nav button
 <script>
 {
 /* ===== 設定 =====
- * API_URL：この画面用のGAS（telemetry/gas/コード.gs）をウェブアプリとしてデプロイしたURL（…/exec）
+ * API_URL：この画面用のGAS（telemetry/gas/code.gs）をウェブアプリとしてデプロイしたURL（…/exec）
  * 空欄のときは、はじめて開いた端末でURLを入れる欄が出ます */
-const API_URL = 'https://script.google.com/macros/s/AKfycbxyNPFREzOSi9h5LWz3sxbb8fQcXumMOc-Sic52EidlFeZov0TGgCfO0HFUAvRkoFWo/exec';
+const API_URL = '';
 const ME_ROOM = 'ME室';
 
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
@@ -334,7 +408,7 @@ const chSort=(a,b)=>(+a-+b)||String(a).localeCompare(String(b));
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const lsGet=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
 const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}};
-const norm=m=>({depts:Array.isArray(m?.depts)?[...m.depts]:[],ch:{...(m?.ch||{})},last:{...(m?.last||{})},cfg:{overdueDays:Number(m?.cfg?.overdueDays)||1}});
+const norm=m=>({depts:Array.isArray(m?.depts)?[...m.depts]:[],info:JSON.parse(JSON.stringify(m?.info||{})),ch:{...(m?.ch||{})},last:{...(m?.last||{})},cfg:{overdueDays:Number(m?.cfg?.overdueDays)||1}});
 const apiUrl=()=>API_URL||lsGet('txc-api','');
 
 /* ===== 状態：前回の内容を端末から先に出す（電波がなくても開ける） ===== */
@@ -356,8 +430,9 @@ function apply(op,m,lv){
   if(op.k==='d'){delete lv[op.e.id];if(op.last!==undefined){if(op.last)m.last[op.e.ch]=op.last;else delete m.last[op.e.ch]}}
   if(op.k==='ch')m.ch[op.ch]={...(m.ch[op.ch]||{}),dept:op.dept??m.ch[op.ch]?.dept??'',kind:op.kind||m.ch[op.ch]?.kind||'送信機',home:op.home??m.ch[op.ch]?.home??''};
   if(op.k==='chdel')delete m.ch[op.ch];
-  if(op.k==='dept'&&!m.depts.includes(op.name))m.depts.push(op.name);
-  if(op.k==='deptdel')m.depts=m.depts.filter(x=>x!==op.name);
+  if(op.k==='dept'&&!m.depts.includes(op.name)){m.depts.push(op.name);m.info[op.name]={slots:'',note:''}}
+  if(op.k==='deptdel'){m.depts=m.depts.filter(x=>x!==op.name);delete m.info[op.name]}
+  if(op.k==='deptset'){const i=m.info[op.name]||(m.info[op.name]={slots:'',note:''});if(op.slots!==undefined)i.slots=op.slots;if(op.note!==undefined)i.note=op.note}
   if(op.k==='cfg'&&op.key==='overdueDays')m.cfg.overdueDays=Number(op.value)||1;
 }
 function rebuild(){M=norm(remoteM);live={...remoteLive};for(const op of Q)apply(op,M,live)}
@@ -427,7 +502,7 @@ $('#apiSave').onclick=()=>{const u=$('#apiIn').value.trim();if(!/^https:\/\/scri
 let pinBuf='';
 function showLogin(msg){pinBuf='';drawDots();$('#lErr').textContent=msg||'';$('#lApi').hidden=!!apiUrl();$('#login').hidden=false}
 function drawDots(){$$('#dots i').forEach((d,i)=>d.classList.toggle('on',i<pinBuf.length))}
-$('#lPad').onclick=async e=>{const b=e.target.closest('button');if(!b)return;
+keypad($('#lPad'),async b=>{
   if(b.dataset.k==='clr')pinBuf='';else if(b.dataset.k==='bs')pinBuf=pinBuf.slice(0,-1);else if(pinBuf.length<5)pinBuf+=b.textContent;
   drawDots();$('#lErr').textContent='';
   if(pinBuf.length===5){
@@ -436,7 +511,7 @@ $('#lPad').onclick=async e=>{const b=e.target.closest('button');if(!b)return;
     $('#lErr').textContent='確認しています…';
     try{const me=await call('login',{},pinBuf);sess={pin:pinBuf,name:me.name,admin:me.admin};lsSet('txc-sess',sess);$('#login').hidden=true;toast(`${me.name}さん、ログインしました`);renderAll();load();flushSoon()}
     catch(err){$('#lErr').textContent=err.server?err.message:'通信できません。電波のある場所でログインしてください';pinBuf='';drawDots()}
-  }};
+  }});
 $('#logout').onclick=()=>{if(!confirm2('logout',Q.length?`未送信が${Q.length}件あります。もう一度押すとログアウトします（未送信は次にログインした人が送ります）`:'もう一度押すとログアウトします'))return;sess=null;lsSet('txc-sess',null);showLogin()};
 $('#whoBtn').onclick=()=>{$('nav button[data-v=set]').click()};
 
@@ -449,7 +524,7 @@ let pend=null;const confirm2=(key,msg)=>{if(pend!==key){pend=key;toast(msg);setT
 /* ===== 画面切り替え ===== */
 $$('nav button').forEach(b=>b.onclick=()=>{
   $$('nav button').forEach(x=>x.setAttribute('aria-pressed',x===b));
-  for(const v of['check','report','set'])$('#v-'+v).hidden=v!==b.dataset.v;
+  for(const v of['check','today','report','set'])$('#v-'+v).hidden=v!==b.dataset.v;
   if(b.dataset.v==='report'){renderNow();loadReport()}
 });
 const deptOpts=(sel,blank)=>(blank!=null?`<option value="">${esc(blank)}</option>`:'')+M.depts.map(d=>`<option${d===sel?' selected':''}>${esc(d)}</option>`).join('');
@@ -468,10 +543,22 @@ const isOverdue=c=>{const l=M.last[c];if(l&&(l.st==='repair'||l.st==='lost'))ret
 const chIn=$('#chIn');let curCh='',F={st:'',r1:'',r2:''};
 $$('#inMode button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
 function setMode(m){$$('#inMode button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.m===m));$('#padBox').hidden=m!=='pad';$('#deptBox').hidden=m!=='dept';lsSet('txc-mode',m);if(m==='dept')renderTiles()}
-$('#pad').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+/* テンキーは指が触れた瞬間に反応させる（クリック待ちの遅れ・ダブルタップ拡大を防ぐ） */
+function keypad(el,fn){
+  const hit=b=>{b.classList.add('hit');setTimeout(()=>b.classList.remove('hit'),110)};
+  el.addEventListener('pointerdown',e=>{const b=e.target.closest('button');if(!b)return;e.preventDefault();hit(b);fn(b)});
+  el.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||e.detail!==0)return;fn(b)});   // キーボード操作のときだけ
+  el.addEventListener('contextmenu',e=>e.preventDefault());
+}
+keypad($('#pad'),b=>{
   if(b.dataset.k==='clr')chIn.value='';else if(b.dataset.k==='bs')chIn.value=chIn.value.slice(0,-1);else if(chIn.value.length<8)chIn.value+=b.textContent;
-  pick(chIn.value.trim())};
+  pick(chIn.value.trim())});
 chIn.oninput=()=>{chIn.value=chIn.value.replace(/[^0-9A-Za-z\-]/g,'').slice(0,8);pick(chIn.value.trim())};
+let rafId=0;
+/* スマホでは、CHが決まったらテンキーをたたんで点検の入力欄を広く使う。番号を押すと戻る */
+const isPhone=()=>innerWidth<760;
+function setCompact(on){$('#inCol').classList.toggle('compact',!!on&&isPhone())}
+chIn.addEventListener('pointerdown',()=>{if($('#inCol').classList.contains('compact')){setCompact(false)}});
 function pick(ch){
   if(ch!==curCh){
     curCh=ch;const l=M.last[ch];
@@ -479,7 +566,8 @@ function pick(ch){
     if(F.st&&RES[F.st]&&!F.r1){F.r1=RES[F.st].ok;F.r2=RES[F.st].okB||''}
     $('#memo').value='';$('#upd').checked=false;$('#loc').dataset.keep='';
   }
-  renderCheck();
+  cancelAnimationFrame(rafId);rafId=requestAnimationFrame(renderCheck);
+  if(ch&&(M.ch[ch]||ch.length>=4))setCompact(true);
 }
 function renderCheck(){
   const ch=curCh;
@@ -525,7 +613,7 @@ $('#memo').oninput=()=>{$('#save').disabled=!valid()};
 $('#loc').onchange=()=>{$('#loc').dataset.keep=$('#loc').value;lsSet('txc-lastloc',$('#loc').value);renderForm()};
 const mkE=(ch,o)=>({id:uid(),t:Date.now(),ch,by:sess?.name||'',u:M.ch[ch]?0:1,memo:'',r1:'',r2:'',k:'点検',...o});
 function afterRecord(ch,e,msg){
-  const p=prev;chIn.value='';curCh='';renderCheck();
+  const p=prev;chIn.value='';curCh='';renderCheck();setCompact(false);
   toast(msg,()=>undo(e,p));
   if(!$('#padBox').hidden)chIn.focus({preventScroll:true});
 }
@@ -585,11 +673,14 @@ $('#bulk').onclick=()=>{
 };
 function renderToday(){
   const td=dkey(Date.now()),rows=Object.values(live).filter(x=>dkey(x.t)===td).sort((a,b)=>b.t-a.t);
-  $('#todayN').textContent=rows.length;$('#todayE').hidden=rows.length>0;
   const pendIds=new Set(Q.flatMap(o=>o.k==='e'?o.es.map(e=>e.id):[]));
-  $('#todayT').innerHTML=rows.slice(0,80).map(x=>`<tr><td class="num nw">${esc(hm(x.t))}${pendIds.has(x.id)?' <span class="tag">未送信</span>':''}</td><td class="num"><b>${esc(x.ch)}</b>${x.u?' <span class="tag warn">未登録</span>':''}</td><td>${esc(x.dept||'—')}</td><td class="nw"><span class="dot d-${esc(x.st)}"></span>${esc(MOVE[x.st]?STL[x.st]:STL[x.st]+(x.k==='一括'?'（一括）':''))}</td><td class="${isAbn(x)?'abn':''}">${esc(resTxt(x))}</td><td>${esc(x.by)}</td><td><button class="btn sm" data-del="${esc(x.id)}">取消</button></td></tr>`).join('');
+  const html=rows.slice(0,150).map(x=>`<div class="tl"><span class="tm num">${esc(hm(x.t))}</span><span><b class="num">${esc(x.ch)}</b> <span class="dot d-${esc(x.st)}"></span>${esc(MOVE[x.st]?STL[x.st]:STL[x.st]+(x.k==='一括'?'（一括）':''))}${resTxt(x)?`<span class="${isAbn(x)?'abn':''}">・${esc(resTxt(x))}</span>`:''}${pendIds.has(x.id)?' <span class="tag">未送信</span>':''}${x.u?' <span class="tag warn">未登録</span>':''}</span><button class="btn sm r" data-del="${esc(x.id)}">取消</button><small>${esc(x.dept||'—')}・${esc(x.by||'')}${x.memo?'・'+esc(x.memo):''}</small></div>`).join('')||'<p class="empty">まだ記録はありません。</p>';
+  $('#todayN').textContent=$('#todayN2').textContent=rows.length;
+  $('#todayL').innerHTML=html;$('#todayL2').innerHTML=html;
 }
-$('#todayT').onclick=e=>{const id=e.target.closest('[data-del]')?.dataset.del;if(!id||!live[id])return;if(!confirm2('del'+id,'もう一度押すとこの記録を取り消します'))return;undo(live[id])};
+const onDel=e=>{const id=e.target.closest('[data-del]')?.dataset.del;if(!id||!live[id])return;if(!confirm2('del'+id,'もう一度押すとこの記録を取り消します'))return;undo(live[id])};
+$('#todayL').onclick=onDel;$('#todayL2').onclick=onDel;
+addEventListener('resize',()=>{if(innerWidth>=1100&&!$('#v-today').hidden)$('nav button[data-v=check]').click()});
 
 /* ===== QRで読む ===== */
 let qrStream=null,qrRun=false,detector=null;
@@ -695,7 +786,7 @@ $$('[data-csv]').forEach(b=>b.onclick=()=>{
 /* ===== 設定（管理者） ===== */
 function renderSet(){
   $('#odDays').innerHTML=[1,2,3,5,7,14,30].map(n=>`<option value="${n}"${n===M.cfg.overdueDays?' selected':''}>${n}日${n===1?'（毎日点検）':n===7?'（週1回）':''}</option>`).join('');
-  $('#dList').innerHTML=M.depts.map((d,i)=>`<span class="chip">${esc(d)}<button data-di="${i}" aria-label="${esc(d)}を削除">×</button></span>`).join('')||'<span class="empty">部署が未登録です</span>';
+  $('#dList').innerHTML=M.depts.map((d,i)=>`<tr><td><b>${esc(d)}</b></td><td><input type="text" inputmode="numeric" class="num" data-slot="${i}" value="${esc(M.info[d]?.slots??'')}" placeholder="—" style="width:5.5em" aria-label="${esc(d)}の枠数"></td><td><button class="btn sm" data-di="${i}">削除</button></td></tr>`).join('')||'<tr><td colspan="3" class="empty">部署が未登録です</td></tr>';
   const cd=$('#cDept').value;$('#cDept').innerHTML=deptOpts(cd,'部署を選択');
   const ld=$('#lbDept').value;$('#lbDept').innerHTML=deptOpts(ld,'全チャネル');
   const q=$('#cFind').value.trim(),all=Object.keys(M.ch).sort(chSort);
@@ -706,6 +797,7 @@ function renderSet(){
 $('#odDays').onchange=()=>{commit({k:'cfg',key:'overdueDays',value:Number($('#odDays').value)});toast('未点検の日数を変更しました')};
 const addDept=()=>{const v=$('#dIn').value.trim();if(!v||M.depts.includes(v))return;$('#dIn').value='';commit({k:'dept',name:v})};
 $('#dAdd').onclick=addDept;$('#dIn').onkeydown=e=>{if(e.key==='Enter')addDept()};
+$('#dList').onchange=e=>{const i=e.target.dataset.slot;if(i==null)return;const d=M.depts[i],v=e.target.value.replace(/[^0-9]/g,'');const slots=v===''?'':Number(v);if(slots===(M.info[d]?.slots??''))return;commit({k:'deptset',name:d,slots});toast(`${d}の枠数を${v===''?'空欄':v}にしました`)};
 $('#dList').onclick=e=>{const i=e.target.dataset.di;if(i==null)return;const d=M.depts[i];if(!confirm2('d'+d,`もう一度押すと「${d}」を削除します`))return;commit({k:'deptdel',name:d});toast('削除しました')};
 const cleanCh=s=>String(s||'').replace(/[^0-9A-Za-z\-]/g,'');
 $('#cAdd').onclick=()=>{const c=cleanCh($('#cIn').value);if(!c)return;const d=$('#cDept').value;$('#cIn').value='';commit({k:'ch',ch:c,dept:d||M.ch[c]?.dept||'',kind:$('#cKind').value,home:$('#cHome').value});toast(`CH ${c} を登録しました`)};
@@ -726,7 +818,76 @@ async function showLabels(){
   $('#labels').hidden=false;
 }
 $('#lbShow').onclick=()=>showLabels().catch(()=>toast('ラベルの部品を読み込めませんでした'));
-$('#lbPrint').onclick=()=>window.print();$('#lbClose').onclick=()=>{$('#labels').hidden=true};
+const printOv=id=>{$$('.printing').forEach(x=>x.classList.remove('printing'));$(id).classList.add('printing');window.print()};
+$('#lbPrint').onclick=()=>printOv('#labels');$('#lbClose').onclick=()=>{$('#labels').hidden=true};
+
+/* ===== 部署ごとのCH一覧（A4 1部署1枚） ===== */
+const curDept=c=>M.last[c]?.dept||M.ch[c]?.dept||'';
+function deptGroups(){
+  const by={};
+  for(const c of new Set([...Object.keys(M.ch),...Object.keys(M.last)])){const d=curDept(c);if(d)(by[d]||(by[d]=[])).push(c)}
+  return by;
+}
+function snapDepts(){const by=deptGroups();return[...M.depts,...Object.keys(by).filter(d=>!M.depts.includes(d))].filter(d=>by[d]?.length||(M.info[d]?.slots||0)>0)}
+function boxOf(c,d,i,over){
+  const l=M.last[c],reg=M.ch[c];
+  const bad=l&&l.st==='keep'&&(l.r1==='破損'||l.r1==='汚染');
+  const cls=bad?'s-bad':l?.st?'s-'+l.st:'';
+  const st=bad?l.r1:l?.st?STL[l.st]:'点検記録なし';
+  const rs=l?.st&&!bad?resTxt(l):'',dt=l?.t?mdhm(l.t)+(l.by?' '+l.by:''):'';
+  const mk=(l?.lt&&d!==ME_ROOM?'<i class="mk">貸出</i>':'')+(!reg?'<i class="mk">未登録</i>':'')+(reg&&reg.dept&&reg.dept!==d&&!l?.lt?`<i class="mk">${esc(reg.dept)}から</i>`:'')+(reg?.kind&&reg.kind!=='送信機'?`<i class="mk">${esc(reg.kind==='ベッドサイドモニタ'?'BSM':reg.kind)}</i>`:'');
+  return `<div class="bx ${cls}${over?' over':''}"><span class="no">${over?'枠外':i}</span><b>${esc(c)}</b><span class="st">${esc(st)}</span>${mk}<span class="rs">${esc(rs||'\u00a0')}</span><span class="rs dt">${esc(dt)}</span></div>`;
+}
+function pageOf(d,by,n,N){
+  const cs=(by[d]||[]).sort(chSort),info=M.info[d]||{},slots=info.slots===''||info.slots==null?null:Number(info.slots);
+  const use=cs.filter(c=>M.last[c]?.st==='use').length;
+  const issue=cs.filter(c=>{const l=M.last[c];return l&&(l.st==='repair'||l.st==='lost'||(l.st==='keep'&&(l.r1==='破損'||l.r1==='汚染')))}).length;
+  const free=slots!=null?slots-cs.length:null;
+  const cells=Math.max(cs.length,slots||0),cols=cells<=8?4:cells<=20?5:cells<=30?6:7;
+  let boxes='';
+  for(let i=0;i<cells;i++){
+    if(i<cs.length)boxes+=boxOf(cs[i],d,i+1,slots!=null&&i>=slots);
+    else boxes+=`<div class="bx empty"><span class="no">${i+1}</span><b>空き</b><i></i></div>`;
+  }
+  const stat=(v,k,bad)=>`<div class="${bad?'bad':''}"><b>${v}</b><span>${k}</span></div>`;
+  return `<section class="pg" data-d="${esc(d)}">
+    <div class="pgHead"><div><div class="ey">テレメータ送信機　部署別一覧</div><h2>${esc(d)}</h2></div><div class="when">${esc(full(Date.now()))} 時点<br>作成：${esc(sess?.name||'')}</div></div>
+    <div class="stats">${stat(cs.length+'<small style="font-size:9pt">台</small>','在室のCH')}${stat(slots!=null?slots:'—','受信側の枠数')}${stat(free==null?'—':free<0?'+'+(-free):free,free!=null&&free<0?'枠を超過':'空き枠',free!=null&&free<0)}${stat(use,'使用中')}${stat(issue,'要対応',issue>0)}</div>
+    <div class="secT">受信枠と在室のCH<small>${slots!=null?`枠 ${slots} のうち ${Math.min(cs.length,slots)} を使用${free<0?`・${-free}台が枠外`:''}`:'受信側の枠数は未設定です（設定画面で入力）'}</small></div>
+    <div class="slots" style="--cols:${cols}">${boxes||'<p style="color:#8a969e">この部署にあるCHはありません</p>'}</div>
+    <div class="notes"><div class="secT">備考</div><div class="area"><div contenteditable="plaintext-only" data-note="${esc(d)}" data-ph="押して記入（空欄なら手書き用の罫線になります）"></div></div></div>
+    <div class="pgFoot"><span class="lg">色：<i style="background:#1f6fd1"></i>使用中<i style="background:#1d8a4e"></i>保管中<i style="background:#c62828"></i>修理中・紛失・汚染・破損<i style="background:#c9d2d8"></i>記録なし　要対応＝修理中・紛失・汚染・破損　右上の番号は枠の通し番号（受信機の登録位置ではありません）</span><span>${n} / ${N}</span></div>
+  </section>`;
+}
+function renderSnap(){
+  const by=deptGroups(),all=snapDepts(),sel=$('#snapDept').value;
+  const list=sel?[sel]:all;
+  $('#pages').innerHTML=list.map((d,i)=>pageOf(d,by,i+1,list.length)).join('');
+  for(const el of $$('#pages [data-note]'))el.textContent=M.info[el.dataset.note]?.note||'';
+  zoomPages();fitPages();
+}
+function fitPages(){
+  // 枠の箱が多い部署は、フッターがページ内に収まるまで箱と文字を小さくする
+  for(const pg of $$('#pages .pg')){
+    const over=()=>{const r=pg.getBoundingClientRect(),f=pg.querySelector('.pgFoot').getBoundingClientRect(),n=pg.querySelector('.notes').getBoundingClientRect();return f.bottom>r.bottom-2||n.height<pg.clientHeight*.09};
+    let k=1;pg.style.setProperty('--s',k);
+    while(over()&&k>.5){k-=.05;pg.style.setProperty('--s',k.toFixed(2))}
+  }
+}
+function zoomPages(){const w=$('#snap').clientWidth-16,px=210*96/25.4;$('#pages').style.zoom=Math.min(1,w/px).toFixed(3)}
+addEventListener('resize',()=>{if(!$('#snap').hidden)zoomPages()});
+$('#snapBtn').onclick=()=>{
+  const cur=$('#snapDept').value;
+  $('#snapDept').innerHTML='<option value="">全部署（1部署1枚）</option>'+snapDepts().map(d=>`<option${d===cur?' selected':''}>${esc(d)}</option>`).join('');
+  $('#snap').hidden=false;renderSnap();$('#snap').scrollTop=0};
+$('#snapDept').onchange=renderSnap;
+$('#snapClose').onclick=()=>{$('#snap').hidden=true};
+$('#snapPrint').onclick=()=>{fitPages();printOv('#snap')};
+$('#pages').addEventListener('focusout',e=>{
+  const d=e.target.dataset?.note;if(d==null)return;const v=e.target.textContent.trim();
+  if(v!==(M.info[d]?.note||'')){commit({k:'deptset',name:d,note:v});toast(`${d}の備考を保存しました`)}
+  fitPages();
+});
 
 /* ===== 起動 ===== */
 rebuild();renderAll();renderSync();setMode(lsGet('txc-mode','pad'));
