@@ -35,13 +35,22 @@ nav button[aria-pressed=true],.seg button[aria-pressed=true]{background:var(--ca
 .seg{display:inline-flex;background:var(--key);border-radius:11px;padding:3px}
 .seg button{min-height:36px;padding:6px 12px}
 main{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
-#v-report,#v-set,#v-today{max-width:1040px;margin:0 auto;padding:14px max(4vw,14px) calc(40px + env(safe-area-inset-bottom))}
+#v-report,#v-set{max-width:1040px;margin:0 auto;padding:14px max(4vw,14px) calc(40px + env(safe-area-inset-bottom))}
 #v-check{height:100%;display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr) minmax(0,360px);gap:12px;padding:12px max(2vw,12px);padding-bottom:max(12px,env(safe-area-inset-bottom))}
 #v-check>.card{min-height:0;overflow:auto;overscroll-behavior:contain}
 #todayCol{display:flex;flex-direction:column;padding:12px}
 #todayCol .tlist{flex:1;min-height:0;overflow:auto}
-.navToday{display:none}
-@media(max-width:1099px){#v-check{grid-template-columns:minmax(0,340px) minmax(0,1fr)}#todayCol{display:none}.navToday{display:block}}
+.todayBtn{display:none}
+@media(max-width:1099px){#v-check{grid-template-columns:minmax(0,340px) minmax(0,1fr)}#todayCol{display:none}.todayBtn{display:inline-flex}}
+.todayBtn{align-items:center;gap:6px}
+.sheetDlg{position:fixed;inset:0;z-index:25;background:#0007;display:flex;align-items:flex-end;justify-content:center}
+.sheetP{background:var(--card);width:min(620px,100%);max-height:88dvh;border-radius:18px 18px 0 0;display:flex;flex-direction:column;padding:14px 14px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -6px 30px #0004}
+@media(min-width:760px){.sheetDlg{align-items:center}.sheetP{border-radius:18px;max-height:84vh}}
+.sheetP .hd{display:flex;align-items:center;gap:8px;margin-bottom:8px}.sheetP .hd h3{margin:0;flex:1}
+.sheetP .bd{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}
+.tl .acts{grid-row:1/3;grid-column:3;display:flex;gap:6px}
+.tl.mine{cursor:pointer}
+.tl .lock{font-size:11px;color:var(--mut)}
 @media(max-width:759px){#v-check{display:flex;flex-direction:column;gap:8px;padding:8px 8px max(8px,env(safe-area-inset-bottom))}
   #formCol{order:1;flex:1;min-height:0}#inCol{order:2;flex:none;overflow:visible;padding:10px}
   #formCol{padding:12px 12px 0}#formCol #save{position:sticky;bottom:0;margin-top:12px;box-shadow:0 -10px 14px var(--card)}#formCol .mv{margin-bottom:12px}
@@ -212,7 +221,6 @@ header{gap:6px;flex-wrap:wrap}header h1{font-size:16px}nav{width:100%}nav button
   <button id="sync" title="保存の状態">読み込み中</button>
   <nav>
     <button data-v="check" aria-pressed="true">点検</button>
-    <button data-v="today" class="navToday" aria-pressed="false">今日</button>
     <button data-v="report" aria-pressed="false">集計</button>
     <button data-v="set" aria-pressed="false">設定</button>
   </nav>
@@ -223,7 +231,7 @@ header{gap:6px;flex-wrap:wrap}header h1{font-size:16px}nav{width:100%}nav button
     <div class="card" id="inCol">
       <div class="row" style="justify-content:space-between">
         <div class="seg" id="inMode"><button data-m="pad" aria-pressed="true">テンキー</button><button data-m="dept" aria-pressed="false">部署から</button></div>
-        <button class="btn sm" id="qrBtn">QRで読む</button>
+        <span class="row" style="gap:6px"><button class="btn sm todayBtn" id="todayBtn">今日の記録 <span class="tag num" id="todayN3">0</span></button><button class="btn sm" id="qrBtn">QRで読む</button></span>
       </div>
       <div id="padBox" style="margin-top:12px">
         <input id="chIn" class="num" inputmode="none" autocomplete="off" placeholder="CH" aria-label="チャネル番号">
@@ -269,10 +277,7 @@ header{gap:6px;flex-wrap:wrap}header h1{font-size:16px}nav{width:100%}nav button
       <div class="tlist" id="todayL"></div>
     </div>
 </section>
-<section id="v-today" hidden>
-  <div class="tlHead"><h3>今日の記録</h3><span class="tag num" id="todayN2">0</span></div>
-  <div class="card"><div id="todayL2"></div></div>
-</section>
+
 
 <section id="v-report" hidden>
   <div class="row" style="margin-bottom:10px"><button class="btn pri" id="snapBtn">部署ごとのCH一覧を印刷（1部署1枚）</button><span class="lbl" style="margin:0">いまの所在で作ります</span></div>
@@ -376,6 +381,24 @@ header{gap:6px;flex-wrap:wrap}header h1{font-size:16px}nav{width:100%}nav button
   <div class="sheet" id="sheet"></div>
 </div>
 
+<div id="todaySheet" class="sheetDlg" hidden role="dialog" aria-modal="true" aria-labelledby="tsT">
+  <div class="sheetP">
+    <div class="hd"><h3 id="tsT">今日の記録</h3><span class="tag num" id="todayN2">0</span><button class="btn sm" id="tsClose">閉じる</button></div>
+    <div class="bd" id="tsList"><div id="todayL2"></div></div>
+    <div class="bd" id="editBox" hidden>
+      <div class="row" style="justify-content:space-between;margin-bottom:6px"><b id="edTitle" class="num" style="font-size:20px"></b><button class="btn sm" id="edBack">一覧へ戻る</button></div>
+      <p class="meta" id="edMeta" style="margin-top:0"></p>
+      <label><span class="lbl">所在</span><select id="edLoc" class="w100"></select></label>
+      <div class="sec" id="edStsWrap"><p class="lbl">管理状況</p>
+        <div class="sts" id="edSts"><button data-s="use">使用中</button><button data-s="keep">保管中</button><button data-s="repair">修理中</button><button data-s="lost">紛失</button><button data-s="other">その他</button></div>
+      </div>
+      <div class="sec" id="edGA" hidden><p class="lbl" id="edLA"></p><div class="chips" id="edCA"></div></div>
+      <div class="sec" id="edGB" hidden><p class="lbl" id="edLB"></p><div class="chips" id="edCB"></div></div>
+      <div class="sec"><p class="lbl" id="edLMemo">コメント</p><input type="text" id="edMemo" class="w100" maxlength="80"></div>
+      <div class="row" style="margin-top:14px"><button class="btn pri f" id="edSave">変更を保存</button><button class="btn" id="edDel" style="color:var(--lost)">この記録を削除</button></div>
+    </div>
+  </div>
+</div>
 <div id="toast" role="status"><span id="tMsg"></span><button id="tUndo" hidden>取消</button></div>
 
 <script>
@@ -433,6 +456,7 @@ function apply(op,m,lv){
   if(op.k==='dept'&&!m.depts.includes(op.name)){m.depts.push(op.name);m.info[op.name]={slots:'',note:''}}
   if(op.k==='deptdel'){m.depts=m.depts.filter(x=>x!==op.name);delete m.info[op.name]}
   if(op.k==='deptset'){const i=m.info[op.name]||(m.info[op.name]={slots:'',note:''});if(op.slots!==undefined)i.slots=op.slots;if(op.note!==undefined)i.note=op.note}
+  if(op.k==='upd'){lv[op.e.id]=op.e;const l=m.last[op.e.ch];if(l){const n={...l};if(!MOVE[op.e.st]&&n.t===op.e.t){n.st=op.e.st;n.r1=op.e.r1||'';n.r2=op.e.r2||''}if(n.mt===op.e.t)n.dept=op.e.dept;m.last[op.e.ch]=n}}
   if(op.k==='cfg'&&op.key==='overdueDays')m.cfg.overdueDays=Number(op.value)||1;
 }
 function rebuild(){M=norm(remoteM);live={...remoteLive};for(const op of Q)apply(op,M,live)}
@@ -524,7 +548,7 @@ let pend=null;const confirm2=(key,msg)=>{if(pend!==key){pend=key;toast(msg);setT
 /* ===== 画面切り替え ===== */
 $$('nav button').forEach(b=>b.onclick=()=>{
   $$('nav button').forEach(x=>x.setAttribute('aria-pressed',x===b));
-  for(const v of['check','today','report','set'])$('#v-'+v).hidden=v!==b.dataset.v;
+  for(const v of['check','report','set'])$('#v-'+v).hidden=v!==b.dataset.v;
   if(b.dataset.v==='report'){renderNow();loadReport()}
 });
 const deptOpts=(sel,blank)=>(blank!=null?`<option value="">${esc(blank)}</option>`:'')+M.depts.map(d=>`<option${d===sel?' selected':''}>${esc(d)}</option>`).join('');
@@ -671,16 +695,78 @@ $('#bulk').onclick=()=>{
   const es=todo.map(c=>{const l=M.last[c];return mkE(c,{t:now,dept:d,st:l.st==='idle'?'keep':l.st,r1:l.r1||'',r2:l.r2||'',by:sess.name+'（一括）',k:'一括'})});
   commit({k:'e',es});toast(`${es.length}件を一括記録しました${skip?`（前回記録なし${skip}件は残しています）`:''}`);
 };
+const canEditE=e=>!!sess&&(sess.admin||String(e.by||'').replace(/（一括）$/,'')===sess.name);
 function renderToday(){
   const td=dkey(Date.now()),rows=Object.values(live).filter(x=>dkey(x.t)===td).sort((a,b)=>b.t-a.t);
   const pendIds=new Set(Q.flatMap(o=>o.k==='e'?o.es.map(e=>e.id):[]));
-  const html=rows.slice(0,150).map(x=>`<div class="tl"><span class="tm num">${esc(hm(x.t))}</span><span><b class="num">${esc(x.ch)}</b> <span class="dot d-${esc(x.st)}"></span>${esc(MOVE[x.st]?STL[x.st]:STL[x.st]+(x.k==='一括'?'（一括）':''))}${resTxt(x)?`<span class="${isAbn(x)?'abn':''}">・${esc(resTxt(x))}</span>`:''}${pendIds.has(x.id)?' <span class="tag">未送信</span>':''}${x.u?' <span class="tag warn">未登録</span>':''}</span><button class="btn sm r" data-del="${esc(x.id)}">取消</button><small>${esc(x.dept||'—')}・${esc(x.by||'')}${x.memo?'・'+esc(x.memo):''}</small></div>`).join('')||'<p class="empty">まだ記録はありません。</p>';
-  $('#todayN').textContent=$('#todayN2').textContent=rows.length;
+  const html=rows.slice(0,200).map(x=>{const mine=canEditE(x);return `<div class="tl${mine?' mine':''}" data-id="${esc(x.id)}"><span class="tm num">${esc(hm(x.t))}</span><span><b class="num">${esc(x.ch)}</b> <span class="dot d-${esc(x.st)}"></span>${esc(MOVE[x.st]?STL[x.st]:STL[x.st]+(x.k==='一括'?'（一括）':''))}${resTxt(x)?`<span class="${isAbn(x)?'abn':''}">・${esc(resTxt(x))}</span>`:''}${pendIds.has(x.id)?' <span class="tag">未送信</span>':''}${x.u?' <span class="tag warn">未登録</span>':''}</span>${mine?`<span class="acts"><button class="btn sm" data-ed="${esc(x.id)}">編集</button></span>`:'<span class="acts lock">本人・管理者のみ</span>'}<small>${esc(x.dept||'—')}・${esc(x.by||'')}${x.memo?'・'+esc(x.memo):''}</small></div>`}).join('')||'<p class="empty">まだ記録はありません。</p>';
+  for(const id of['#todayN','#todayN2','#todayN3'])$(id).textContent=rows.length;
   $('#todayL').innerHTML=html;$('#todayL2').innerHTML=html;
+  if(ED&&!live[ED.e.id])closeEdit();
 }
-const onDel=e=>{const id=e.target.closest('[data-del]')?.dataset.del;if(!id||!live[id])return;if(!confirm2('del'+id,'もう一度押すとこの記録を取り消します'))return;undo(live[id])};
-$('#todayL').onclick=onDel;$('#todayL2').onclick=onDel;
-addEventListener('resize',()=>{if(innerWidth>=1100&&!$('#v-today').hidden)$('nav button[data-v=check]').click()});
+const onPick=e=>{const row=e.target.closest('.tl.mine');if(!row)return;openEdit(row.dataset.id)};
+$('#todayL').onclick=onPick;$('#todayL2').onclick=onPick;
+function openToday(){closeEdit();$('#todaySheet').hidden=false}
+$('#todayBtn').onclick=openToday;
+$('#tsClose').onclick=()=>{$('#todaySheet').hidden=true;closeEdit()};
+$('#todaySheet').onclick=e=>{if(e.target.id==='todaySheet'){$('#todaySheet').hidden=true;closeEdit()}};
+
+/* ===== 今日の記録の編集・削除 ===== */
+let ED=null;
+function openEdit(id){
+  const e=live[id];if(!e||!canEditE(e))return;
+  ED={e,st:e.st,r1:e.r1||'',r2:e.r2||''};
+  $('#edTitle').textContent='CH '+e.ch;
+  $('#edMeta').textContent=`${full(e.t)}　${MOVE[e.st]?STL[e.st]+'の記録':e.k==='一括'?'一括の記録':'点検の記録'}　記録者：${e.by||''}`;
+  const d=e.dept;$('#edLoc').innerHTML=deptOpts(d,null)+(d&&!M.depts.includes(d)?`<option selected>${esc(d)}</option>`:'');
+  $('#edMemo').value=e.memo||'';
+  $('#tsList').hidden=true;$('#editBox').hidden=false;$('#todaySheet').hidden=false;$('#tsT').textContent='記録の編集';
+  renderEdit();
+}
+function closeEdit(){ED=null;$('#editBox').hidden=true;$('#tsList').hidden=false;$('#tsT').textContent='今日の記録'}
+function renderEdit(){
+  if(!ED)return;const mv=!!MOVE[ED.st];
+  $('#edStsWrap').hidden=mv;
+  $$('#edSts button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.s===ED.st));
+  const R=mv?null:RES[ED.st];
+  $('#edGA').hidden=!R;$('#edGB').hidden=!(R&&R.showB(ED.r1));
+  if(R){$('#edLA').textContent=R.la;$('#edLB').textContent=R.lb;
+    $('#edCA').innerHTML=R.a.map(x=>`<button data-a="${esc(x)}" class="${x!==R.ok?'bad':''}" aria-pressed="${x===ED.r1}">${esc(x)}</button>`).join('');
+    $('#edCB').innerHTML=R.b.map(x=>`<button data-b="${esc(x)}" class="${ED.st==='keep'&&x==='未実施'||ED.st==='use'?'bad':''}" aria-pressed="${x===ED.r2}">${esc(x)}</button>`).join('')}
+  $('#edLMemo').textContent=needMemo(ED.st)?'コメント（必須）':'コメント（任意）';
+  $('#edSave').disabled=!validEd();
+}
+function validEd(){
+  if(!ED)return false;if(MOVE[ED.st])return true;
+  if(ED.st==='use')return !!ED.r1&&(ED.r1!=='テクニカル'||!!ED.r2);
+  if(ED.st==='keep')return !!ED.r1&&!!ED.r2;
+  if(needMemo(ED.st))return !!$('#edMemo').value.trim();
+  return !!ED.st;
+}
+$('#edSts').onclick=e=>{const s2=e.target.closest('button')?.dataset.s;if(!s2||!ED)return;if(ED.st!==s2){ED.st=s2;const R=RES[s2];ED.r1=R?R.ok:'';ED.r2=R?.okB||''}renderEdit()};
+$('#edCA').onclick=e=>{const a=e.target.closest('button')?.dataset.a;if(a==null||!ED)return;ED.r1=a;if(ED.st==='use')ED.r2='';renderEdit()};
+$('#edCB').onclick=e=>{const b=e.target.closest('button')?.dataset.b;if(b==null||!ED)return;ED.r2=b;renderEdit()};
+$('#edMemo').oninput=()=>{$('#edSave').disabled=!validEd()};
+$('#edBack').onclick=closeEdit;
+/* まだ送っていない記録は送信箱の中を直接書き換える（余計な通信をしない） */
+function patchPending(id,fn){
+  if(flushing)return false;
+  for(const op of Q)if(op.k==='e'){const i=op.es.findIndex(x=>x.id===id);if(i>=0){fn(op,i);Q=Q.filter(o=>o.k!=='e'||o.es.length);saveQ();rebuild();renderAll();return true}}
+  return false;
+}
+$('#edSave').onclick=()=>{
+  if(!validEd())return;const e=ED.e;
+  const ne={...e,dept:$('#edLoc').value||e.dept,memo:$('#edMemo').value.trim()};
+  if(!MOVE[e.st]){ne.st=ED.st;ne.r1=RES[ED.st]?ED.r1:'';ne.r2=RES[ED.st]?((ED.st==='use'&&ED.r1!=='テクニカル')?'':ED.r2):''}
+  if(!patchPending(e.id,(op,i)=>{op.es[i]=ne}))commit({k:'upd',e:ne});
+  closeEdit();toast(`CH ${e.ch} の記録を直しました`);
+};
+$('#edDel').onclick=()=>{
+  if(!ED)return;const e=ED.e;
+  if(!confirm2('del'+e.id,'もう一度押すとこの記録を削除します'))return;
+  if(!patchPending(e.id,(op,i)=>{op.es.splice(i,1)}))commit({k:'d',e});
+  closeEdit();toast(`CH ${e.ch} の記録を削除しました`);
+};
 
 /* ===== QRで読む ===== */
 let qrStream=null,qrRun=false,detector=null;

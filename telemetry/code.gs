@@ -190,6 +190,12 @@ function push_(ops) {
     const tailN = Math.min(Math.max(lastRow - 1, 0), 5000);
     const tail = tailN ? log.getRange(lastRow - tailN + 1, 1, tailN, W).getValues() : [];
     const seen = new Set(tail.map(r => str_(r[0])));
+    const tailStart = lastRow - tailN + 1, tailIdx = {};
+    tail.forEach((r, i) => { tailIdx[str_(r[0])] = i; });
+    const dirtyTail = new Set();
+    /* 記録を直せるのは、記録した本人か管理者だけ */
+    const canEdit = (me, row) => me.admin || str_(row[9]).replace(/（一括）$/, '') === me.name;
+    const findRow = id => { const a = add.find(r => r[0] === id); if (a) return { row: a }; const i = tailIdx[id]; return i === undefined ? null : { row: tail[i], i }; };
     const lastMap = {};
     rows_(SH.LAST).forEach(r => { const c = str_(r[0]); if (c) lastMap[c] = r; });
     const master = rows_(SH.MASTER), mIdx = {};
@@ -217,7 +223,20 @@ function push_(ops) {
           lastDirty = true;
         });
       } else if (op.k === 'd' && op.e && op.e.id) {
-        delIds.add(String(op.e.id)); recompute.add(String(op.e.ch));
+        const f = findRow(String(op.e.id));
+        if (f && !canEdit(me, f.row)) { rejected.push({ id: op.id, error: '自分の記録だけ削除できます' }); return; }
+        if (f && f.i === undefined) add.splice(add.indexOf(f.row), 1); else delIds.add(String(op.e.id));
+        recompute.add(String(op.e.ch));
+      } else if (op.k === 'upd' && op.e && op.e.id) {
+        const f = findRow(String(op.e.id));
+        if (!f) { rejected.push({ id: op.id, error: '直す記録が見つかりません（古い記録はスプレッドシートで直してください）' }); return; }
+        if (!canEdit(me, f.row)) { rejected.push({ id: op.id, error: '自分の記録だけ編集できます' }); return; }
+        const r = f.row, e = op.e, isMove = r[10] === '貸出' || r[10] === '返却';
+        r[4] = str_(e.dept);
+        if (!isMove) { r[5] = ST_JP[e.st] || 'その他'; r[6] = str_(e.r1); r[7] = str_(e.r2); }
+        r[8] = str_(e.memo);
+        if (f.i !== undefined) dirtyTail.add(f.i);
+        recompute.add(str_(r[3]));
       } else if (op.k === 'ch' && op.ch) {
         const c = String(op.ch), now = new Date();
         if (c in mIdx) { const r = master[mIdx[c]]; if (op.dept !== undefined) r[2] = op.dept; if (op.kind) r[1] = op.kind; if (op.home !== undefined) r[3] = op.home; r[5] = now; }
@@ -243,6 +262,7 @@ function push_(ops) {
       done.push(op.id);
     });
 
+    dirtyTail.forEach(i => log.getRange(tailStart + i, 1, 1, W).setValues([tail[i]]));
     if (add.length) log.getRange(log.getLastRow() + 1, 1, add.length, W).setValues(add);
     if (delIds.size) deleteLogRows_(log, delIds);
     recompute.forEach(c => {
