@@ -126,6 +126,24 @@ main{flex:1;min-width:0;padding:26px 30px 40px;display:flex;flex-direction:colum
 .oxy .t{display:flex;justify-content:space-between;align-items:baseline;gap:10px}.oxy .t span{font-size:14px;font-weight:600}
 .oxy .t b{font-size:22px}.oxy .t b small{font-size:13px;color:var(--muted);font-weight:500}
 .oxy .s{font-size:12px;color:var(--muted)}
+details.fac{border:1px solid var(--line);border-left:6px solid var(--line);border-radius:12px;margin-bottom:8px;background:var(--surface)}
+details.fac.lv-b-ok{border-left-color:var(--grn-bar)}details.fac.lv-b-warn{border-left-color:var(--yel-bar)}details.fac.lv-b-alert{border-left-color:var(--red-dot)}
+details.fac summary{list-style:none;display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:10px 12px 8px;cursor:pointer}
+details.fac summary::-webkit-details-marker{display:none}
+.fac .fn b{display:block;font-size:17px}.fac .fn small{font-size:12px;color:var(--muted)}
+.fac .fd{display:flex;flex-direction:column;align-items:flex-end}.fac .fd b{font-size:26px;line-height:1}.fac .fd b small{font-size:13px;margin-left:2px}
+.fac .fd em{font-style:normal;font-size:12px;color:var(--muted);margin-top:2px}
+.fac .fb{grid-column:1/-1;display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--track);margin:6px 0 3px}
+.fac .fb i,.flg i{display:inline-block;height:100%}.fac .fb .u,.flg .u{background:var(--t-gas)}.fac .fb .r,.flg .r{background:#e0a030}
+.flg{margin-left:8px;white-space:nowrap}.flg i{width:9px;height:9px;border-radius:2px;vertical-align:-1px;margin:0 3px 0 6px}
+.fac .fs{grid-column:1/-1;font-size:13px;color:var(--muted)}.fac .fs b{color:var(--ink)}.fac .rs{color:#b07400}
+.fac .fm{grid-column:1/-1;text-align:right;font-size:12.5px;font-weight:700;color:var(--t-gas)}.fac .fm::after{content:' ▼'}
+details.fac[open] .fm::after{content:' ▲'}details.fac[open] .fm{font-size:0}details.fac[open] .fm::after{font-size:12.5px;content:'閉じる ▲'}
+.fparts{list-style:none;margin:0;padding:2px 12px 8px;border-top:1px dashed var(--line)}
+.fparts li{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}.fparts li:last-child{border-bottom:0}
+.fparts .n{flex:1;font-size:14px;font-weight:600}.fparts .n small{display:block;font-size:12px;color:var(--muted);font-weight:400}
+.fparts b{font-size:19px;white-space:nowrap}.fparts b small{font-size:12px;margin-left:2px}.fparts b.rs{font-size:12px}
+.rtag{font-style:normal;font-size:11px;background:#e0a030;color:#fff;border-radius:5px;padding:0 6px;margin-right:6px}
 .lv-ok{color:var(--grn)}.lv-warn{color:var(--yel)}.lv-alert{color:var(--red)}
 .bar i.lv-ok{background:var(--grn-bar)}.bar i.lv-warn{background:var(--yel-bar)}.bar i.lv-alert{background:var(--red-dot)}
 .chart{border-top:1px solid var(--line2);padding-top:12px;display:flex;flex-direction:column;gap:6px}
@@ -843,27 +861,54 @@ function todoW(s) {
     body };
 }
 
+/* 酸素：施設ごと（本館＝A棟・BC棟・CE）。タップで設備ごとの内訳 */
+const FAC_ORDER = ['本館', '心療センター', '北館', '外来センター', 'オルソ'];
+const FAC_OF = { 'CE': '本館', 'A棟': '本館', 'BC棟': '本館' };
+const FAC_SUB = { '本館': 'A棟・BC棟・CE' };
 function oxyW() {
-  const ox = rows('残量').filter(r => r['業務'] === '医療ガス' && r['種類'] === '酸素')
-    .sort((a, b) => (num(a['残り日数']) ?? 999) - (num(b['残り日数']) ?? 999));
-  const names = [...new Set(rows('残量推移').map(r => r['名称']))];
-  if (S.series >= names.length) S.series = 0;
   const lvOf = r => { const d = num(r['残り日数']); return r['状態'] || (d === null ? '' : d <= 3 ? 'alert' : d <= 7 ? 'warn' : 'ok'); };
   const days = d => d === null ? '—' : d >= 100 ? '100+' : d;
-  const body = `${ox.length ? ox.map(r => {
-      const d = num(r['残り日数']), lv = lvOf(r), w = d === null ? 0 : Math.min(100, Math.round(d / 14 * 100));
-      return `<div class="oxy"><div class="t"><span>${esc(r['名称'])}</span><b class="lv-${esc(lv)}">${days(d)}<small> 日</small></b></div>
-        <div class="bar"><i class="lv-${esc(lv)}" style="width:${w}%"></i></div>
-        <span class="s">${esc(r['現在値'])}${esc(r['単位'])}${r['1日使用量'] !== '' ? '・1日 ' + esc(r['1日使用量']) + esc(r['単位']) : ''}${r['予測日'] ? '・下限 ' + esc(r['下限']) + esc(r['単位']) + ' に ' + md(r['予測日']) + '頃' : ''}</span></div>`;
-    }).join('') : '<p class="empty">酸素のデータがありません</p>'}
+  const nL = v => v === null ? '—' : Math.round(v).toLocaleString('ja-JP');
+  const ix = n => { const i = FAC_ORDER.indexOf(n); return i < 0 ? 99 : i; };
+  const gas = rows('残量').filter(r => r['業務'] === '医療ガス');
+  const facs = gas.filter(r => r['種類'] === '酸素（施設合計）').sort((a, b) => ix(a['場所']) - ix(b['場所']));
+  const ox = gas.filter(r => r['種類'] === '酸素');
+  const names = [...new Set(rows('残量推移').map(r => r['名称']))];
+  if (S.series >= names.length) S.series = 0;
+  const part = r => {
+    const rsv = /予備/.test(r['名称']), d = num(r['残り日数']), lv = lvOf(r);
+    return `<li class="${rsv ? 'rsv' : ''}"><span class="n">${rsv ? '<i class="rtag">予備</i>' : ''}${esc(String(r['名称']).replace(/ ボンベ$/, ''))}
+      <small>${rsv ? `残り ${nL(num(String(r['現在値']).split('／').pop()))} ${esc(r['単位'])}` : esc(r['現在値']) + ' ' + esc(r['単位'])}${!rsv && r['1日使用量'] !== '' ? '・1日 ' + esc(r['1日使用量']) + ' ' + esc(r['単位']) : ''}${!rsv && r['予測日'] ? '・' + md(r['予測日']) + ' 頃' : ''}</small></span>
+      ${rsv ? '<b class="rs">ふだんは使わない</b>' : `<b class="lv-${esc(lv)}">${days(d)}<small>日</small></b>`}</li>`;
+  };
+  const card = f => {
+    const name = f['場所'], lv = lvOf(f), d = num(f['残り日数']);
+    const m = String(f['現在値']).match(/^([\d.]+)(?:（うち予備 ([\d.]+)）)?/) || [];
+    const total = num(m[1]), rsv = num(m[2]) || 0, daily = num(f['1日使用量']);
+    const noRsv = daily && total !== null && rsv ? Math.floor((total - rsv) / daily * 10) / 10 : null;
+    const parts = ox.filter(r => (FAC_OF[r['場所']] || r['場所']) === name).sort((a, b) => /予備/.test(a['名称']) - /予備/.test(b['名称']));
+    return `<details class="fac lv-b-${esc(lv)}"><summary>
+        <span class="fn"><b>${esc(name)}</b>${FAC_SUB[name] ? `<small>${FAC_SUB[name]}</small>` : ''}</span>
+        <span class="fd"><b class="lv-${esc(lv)}">${days(d)}<small>日</small></b><em>${f['予測日'] ? md(f['予測日']) + ' 頃まで' : 'データ不足'}</em></span>
+        <span class="fb"><i class="u" style="width:${total ? ((total - rsv) / total * 100).toFixed(1) : 0}%"></i><i class="r" style="width:${total ? (rsv / total * 100).toFixed(1) : 0}%"></i></span>
+        <span class="fs">合計 <b>${nL(total)}</b> L${daily ? `・1日 ${nL(daily)} L` : ''}</span>
+        <span class="fs">${rsv ? `予備酸素 <b class="rs">${nL(rsv)}</b> L${noRsv !== null ? `（予備なしだと ${days(noRsv)}日）` : ''}` : '予備酸素なし'}${/容量未登録/.test(f['現在値']) ? '<span class="lv-warn">・容量未登録あり</span>' : ''}</span>
+        <span class="fm">くわしく</span></summary>
+      ${parts.length ? `<ul class="fparts">${parts.map(part).join('')}</ul>` : '<p class="empty">内訳のデータがありません</p>'}</details>`;
+  };
+  const body = `${facs.length ? `<p class="muted" style="font-size:12.5px;margin:0 0 6px">残り日数は予備酸素を含めた目安です。施設をタップすると内訳が出ます。A4の印刷は医療ガス点検の画面からできます。<span class="flg"><i class="u"></i>ふだん使う酸素 <i class="r"></i>予備酸素</span></p>
+      ${facs.map(card).join('')}`
+      : ox.length ? `<ul class="fparts">${ox.map(part).join('')}</ul>` : '<p class="empty">酸素のデータがありません</p>'}
     ${names.length ? `<div class="chart"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span class="muted" style="font-size:13px;font-weight:600">過去30日</span>
       <select data-act="series" aria-label="グラフの対象">${names.map((n, i) => `<option value="${i}" ${i === S.series ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></div>
       ${lineChart(rows('残量推移').filter(r => r['名称'] === names[S.series]))}
       <span class="muted" style="font-size:12px">黄色の点＝交換・補充　赤の点線＝下限</span></div>` : ''}`;
-  const lvs = ox.map(lvOf);
-  return { id: 'oxy', title: '酸素 あと何日使えるか', icon: IC.gas, color: 'var(--t-gas)',
+  const lvs = (facs.length ? facs : ox).map(lvOf).concat(ox.map(lvOf));
+  const short = n => String(n).replace('センター', 'C');
+  return { id: 'oxy', title: '酸素の残り（施設ごと）', icon: IC.gas, color: 'var(--t-gas)',
     level: lvs.includes('alert') ? 'alert' : lvs.includes('warn') ? 'warn' : '',
-    summary: ox.length ? ox.slice(0, 3).map(r => `<span class="w-k">${dot(lvOf(r))}${esc(String(r['名称']).replace(' 酸素ボンベ', '').replace(' 液体酸素', ''))} <b class="lv-${esc(lvOf(r))}">${days(num(r['残り日数']))}日</b></span>`).join('') : '<span class="w-x">データがありません</span>',
+    summary: facs.length ? facs.map(r => `<span class="w-k">${dot(lvOf(r))}${esc(short(r['場所']))} <b class="lv-${esc(lvOf(r))}">${days(num(r['残り日数']))}日</b></span>`).join('')
+      : '<span class="w-x">データがありません</span>',
     body, link: LINKS.gas ? [LINKS.gas, '医療ガス点検へ'] : null };
 }
 
