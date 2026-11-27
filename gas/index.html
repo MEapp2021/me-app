@@ -312,6 +312,87 @@ svg .fc{stroke:var(--muted);stroke-dasharray:3 4;stroke-width:2}
   display:flex;gap:16px;align-items:center;transition:transform .18s,opacity .18s,visibility .18s;z-index:40;box-shadow:0 6px 20px rgba(0,0,0,.18)}
 #toast.show{transform:translateX(-50%) translateY(0);opacity:1;visibility:visible}
 #toast button{color:var(--toast-btn);font-weight:700;white-space:nowrap}
+
+/* ホーム：スマホはタブ、広い画面は2列 */
+main.wide{max-width:600px}
+.home-tabs{position:sticky;top:calc(env(safe-area-inset-top,0px) + 54px);z-index:4;background:var(--bg);padding:6px 0;margin:-4px 0 6px}
+.home-tabs button{padding:10px 6px;font-size:15px}
+.home-tabs .num{font-size:12px;opacity:.8;margin-left:4px}
+.tdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-left:6px;vertical-align:1px}
+.tdot.warn{background:var(--warn-line)} .tdot.alert{background:var(--alert)}
+.cols.show-check .col-oxy,.cols.show-oxy .col-check{display:none}
+.col-check .col-h{display:none}
+@media (min-width:900px){
+  main.wide{max-width:1180px}
+  .home-tabs{display:none}
+  .cols{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:20px;align-items:start}
+  .cols .col{display:block!important}
+  .col-check .col-h{display:block;margin-top:4px}
+  .col-oxy{position:sticky;top:70px;max-height:calc(100vh - 84px);overflow:auto;padding-right:2px}
+}
+.oxy-h2{display:flex;align-items:center;gap:6px;margin:4px 0 2px}
+.oxy-h2 h2{flex:1;margin:0 2px;color:var(--ink);font-size:15px;font-weight:700}
+.oxy-h2 button{height:34px;padding:0 11px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--accent);font-weight:700;font-size:13px;white-space:nowrap}
+.flegend i.u{background:#24456b} .flegend i.s{background:#8fb3dd} .flegend i.r{background:#e0a030}
+.fcard{background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--line);border-radius:14px;margin-bottom:8px;overflow:hidden}
+.fcard.ok{border-left-color:var(--ok)} .fcard.warn{border-left-color:var(--warn-line);background:linear-gradient(90deg,var(--warn-bg),var(--surface) 45%)}
+.fcard.alert{border-left-color:var(--alert);background:linear-gradient(90deg,var(--alert-bg),var(--surface) 45%)}
+.fc-top{display:grid;grid-template-columns:1fr auto;gap:2px 10px;width:100%;text-align:left;padding:10px 12px 8px}
+.fc-n b{font-size:18px;display:block;line-height:1.2}
+.fc-n small{font-size:12px;color:var(--muted)}
+.fc-d{grid-row:span 1;display:flex;flex-direction:column;align-items:flex-end}
+.fc-d b{font-size:28px;font-weight:800;line-height:1}
+.fc-d b i{font-style:normal;font-size:13px;margin-left:2px}
+.fc-d em{font-style:normal;font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap}
+.fc-d.ok b{color:var(--ok)} .fc-d.warn b{color:var(--warn)} .fc-d.alert b{color:var(--alert)}
+.fc-bar{grid-column:1/-1;display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--empty);margin:6px 0 4px}
+.fc-bar i{display:block;height:100%}
+.fc-bar .u{background:#24456b} .fc-bar .s{background:#8fb3dd} .fc-bar .r{background:#e0a030}
+:root[data-theme="dark"] .fc-bar .u,:root[data-theme="dark"] .flegend i.u{background:#7fb2e8} :root[data-theme="dark"] .fc-bar .s,:root[data-theme="dark"] .flegend i.s{background:#3d5f86}
+.fc-s{grid-column:1/-1;font-size:13px;color:var(--muted)}
+.fc-s b{color:var(--ink);font-size:14px}
+.fc-s.rsv b{color:#b07400}
+:root[data-theme="dark"] .fc-s.rsv b{color:#f0b850}
+.fc-more{grid-column:1/-1;text-align:right;font-size:12.5px;color:var(--accent);font-weight:700;margin-top:2px}
+.fcard .miss{display:block;font-size:12px;color:var(--warn);padding:0 12px 8px}
+.fc-detail{border-top:1px dashed var(--line);padding:4px 12px 8px}
+.fp{padding:7px 0;border-bottom:1px solid var(--line)}
+.fp:last-child{border-bottom:0}
+.fp-h{display:flex;align-items:baseline;gap:8px}
+.fp-h b{flex:1;font-size:14.5px}
+.fp-h span{font-size:19px;font-weight:800}
+.fp-h span i{font-style:normal;font-size:12px;margin-left:2px}
+.fp-h .ok{color:var(--ok)} .fp-h .warn{color:var(--warn)} .fp-h .alert{color:var(--alert)}
+.rsv-t{font-size:12px!important;font-weight:700!important;color:#b07400}
+.fp small:empty{display:none}
+.fp small{display:block;font-size:12.5px;color:var(--muted)}
+.rtag{display:inline-block;font-size:11px;background:#e0a030;color:#fff;border-radius:5px;padding:0 6px;margin-right:6px;vertical-align:2px}
+
+/* 印刷（A4たて） */
+#printArea{display:none}
+@media print{
+  @page{size:A4 portrait;margin:12mm}
+  html,body{background:#fff!important;color:#000!important}
+  body>*:not(#printArea){display:none!important}
+  #printArea{display:block;font-size:10.5pt;color:#000}
+  #printArea h1{font-size:16pt;margin:0 0 2mm}
+  #printArea h2{font-size:12pt;margin:5mm 0 2mm;color:#000}
+  .p-meta{margin:0;font-size:9.5pt}
+  .p-t{width:100%;border-collapse:collapse;font-size:9.5pt}
+  .p-t th,.p-t td{border:0.6pt solid #555;padding:1.6mm 2mm;text-align:right;vertical-align:middle}
+  .p-t thead th{background:#e8edf3!important;text-align:center;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .p-t tbody th{text-align:left}
+  .p-t th small,.p-t td small{display:block;font-size:8pt;font-weight:400;color:#333}
+  .p-t td{white-space:nowrap}
+  .p-d td:first-of-type{white-space:normal;text-align:left}
+  .p-d tbody th{white-space:nowrap}
+  .p-d{font-size:9pt}
+  .p-t tr.warn td,.p-t tr.warn th{background:#fff3c4!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .p-t tr.alert td,.p-t tr.alert th{background:#fbd9db!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .p-sum th,.p-sum td{font-weight:700}
+  .p-t tr{break-inside:avoid}
+  .p-note{font-size:8.5pt;margin-top:3mm}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -410,7 +491,7 @@ const S = {
   apiUrl: API_URL || store.get('apiUrl', ''),
   user: '', lastUser: store.get('lastUser', ''),
   date: todayStr(), data: null, loading: false, error: '',
-  view: 'who', loc: null, draft: {}, note: '', active: null, dirty: false, sheetAnim: false, photoTarget: ''
+  view: 'who', homeTab: store.get('homeTab', 'check'), loc: null, draft: {}, note: '', active: null, dirty: false, sheetAnim: false, photoTarget: ''
 };
 
 function call(action, payload = {}) {
@@ -591,58 +672,125 @@ function locations() {
 const litersText = s => s.l_per_unit && s.current !== null ? `≒ ${Math.round(s.current * s.l_per_unit).toLocaleString('ja-JP')}L` : '';
 const dayLeftText = s => s.days_left === null ? '—' : (s.days_left >= 100 ? '100+' : String(Math.round(s.days_left * 10) / 10));
 
+/* 施設のまとめ方と並び順（本館＝A棟・BC棟・CE） */
+const FAC_ORDER = ['本館', '心療センター', '北館', '外来センター', 'オルソ'];
+const FAC_OF = { 'CE': '本館', 'A棟': '本館', 'BC棟': '本館' };
+const FAC_SUB = { '本館': 'A棟・BC棟・CE' };
+const facOf = loc => FAC_OF[loc] || loc;
+const nL = v => Math.round(v).toLocaleString('ja-JP');
+const daysTxt = d => d === null || d === undefined ? '—' : d >= 100 ? '100+' : String(d);
+function facList() {
+  const fs = ((S.data && S.data.facilities) || []).slice();
+  const ix = n => { const i = FAC_ORDER.indexOf(n); return i < 0 ? 99 : i; };
+  return fs.sort((a, b) => ix(a.name) - ix(b.name));
+}
+/* その施設の酸素の設備（いつも使う → 予備の順） */
+function facParts(f) {
+  const lit = {};
+  (f.parts || []).forEach(p => { lit[p.label] = p.liters; });
+  return ((S.data && S.data.supply) || [])
+    .filter(s => s.gas === '酸素' && s.current !== null && facOf(s.location) === f.name)
+    .map(s => ({ s, reserve: !!s.reserve || /予備/.test(s.group || s.label || ''), liters: lit[s.label] ?? (s.l_per_unit ? Math.round(s.current * s.l_per_unit) : null) }))
+    .sort((a, b) => a.reserve - b.reserve);
+}
+
 function renderHome() {
   const items = S.data ? S.data.items : [];
   const daily = items.filter(i => i.daily);
   const done = daily.filter(i => i.today).length;
   const isToday = S.date === todayStr();
-  const oxy = S.data ? S.data.supply.filter(s => s.gas === '酸素' && s.current !== null && !s.reserve) : [];
+  const tab = S.homeTab || 'check';
+  const fs = facList();
+  const worst = fs.some(f => f.level === 'alert') ? 'alert' : fs.some(f => f.level === 'warn') ? 'warn' : '';
+  app.className = 'wide';
   app.innerHTML = `
-    <div class="datebar">
-      <button data-act="prevDay" aria-label="前の日">‹</button>
-      <div class="d num">${fmtJP(S.date)}${isToday ? '' : '<span class="past">過去の日付に記録しています</span>'}</div>
-      <button data-act="nextDay" aria-label="次の日" ${isToday ? 'disabled' : ''}>›</button>
+    <div class="seg-tabs home-tabs" role="tablist">
+      <button class="${tab === 'check' ? 'on' : ''}" data-act="homeTab" data-tab="check" role="tab">点検する場所 <span class="num">${done}/${daily.length}</span></button>
+      <button class="${tab === 'oxy' ? 'on' : ''}" data-act="homeTab" data-tab="oxy" role="tab">酸素の残り${worst ? `<i class="tdot ${worst}"></i>` : ''}</button>
     </div>
-    <div class="progress"><i style="width:${daily.length ? done / daily.length * 100 : 0}%"></i></div>
-    <div class="ptext num">${done} / ${daily.length} 項目</div>
     ${S.error ? `<div class="banner err">${esc(S.error)}</div>` : ''}
     ${!S.data ? `<p class="muted">${S.loading ? '読み込んでいます…' : '表示できるデータがありません'}</p>` : `
-    ${oxy.length ? `<div class="oxy">
-      <div class="oxy-h"><b>酸素　あと何日使えるか</b><button data-act="trend">推移 ›</button></div>
-      ${oxy.map(s => s.use_side ? `<div class="orow two ${s.level}">
-        <span class="n">${esc(s.short)}<small class="num">${s.current}${s.full ? ' / ' + s.full : ''}${esc(s.unit)}${s.avg !== null ? `・1日 ${s.avg}${esc(s.unit)}` : ''}</small>${s.detail ? `<small class="num">${esc(s.detail)}</small>` : ''}</span>
-        <span class="dd use ${s.use_side.level} num"><small>使用中（${esc(s.use_side.side)}）</small><b>${s.use_side.days_left === null ? '—' : s.use_side.days_left >= 100 ? '100+' : s.use_side.days_left}<i>日</i></b><em>${s.use_side.predicted ? md(s.use_side.predicted) + ' 頃' : 'データ不足'}</em></span>
-        <span class="dd ${s.level} num"><small>設備全体</small><b>${dayLeftText(s)}<i>日</i></b><em>${s.predicted ? md(s.predicted) + ' 頃' : 'データ不足'}</em></span></div>`
-      : `<div class="orow ${s.level}">
-        <span class="n">${esc(s.short)}<small class="num">${esc(s.side ? s.side + ' ' : '')}${s.current}${s.full ? ' / ' + s.full : ''}${esc(s.unit)}${s.avg !== null ? `・1日 ${s.avg}${esc(s.unit)}` : ''}</small>${litersText(s) ? `<small class="num">${litersText(s)}${s.avg !== null ? `・1日 ≒ ${Math.round(s.avg * s.l_per_unit).toLocaleString('ja-JP')}L` : ''}</small>` : ''}${s.detail ? `<small class="num">${esc(s.detail)}</small>` : ''}</span>
-        <span class="days num">${dayLeftText(s)}<small>日</small></span>
-        <span class="when num">${s.predicted ? md(s.predicted) + ' 頃' : 'データ不足'}</span></div>`).join('')}
-    </div>` : ''}
-    ${facilitiesCard()}
-    <h2>点検する場所</h2>
-    <div class="list">${locations().map(locRow).join('')}</div>`}`;
+    <div class="cols show-${tab}">
+      <section class="col col-check">
+        <div class="datebar">
+          <button data-act="prevDay" aria-label="前の日">‹</button>
+          <div class="d num">${fmtJP(S.date)}${isToday ? '' : '<span class="past">過去の日付に記録しています</span>'}</div>
+          <button data-act="nextDay" aria-label="次の日" ${isToday ? 'disabled' : ''}>›</button>
+        </div>
+        <div class="progress"><i style="width:${daily.length ? done / daily.length * 100 : 0}%"></i></div>
+        <div class="ptext num">${done} / ${daily.length} 項目</div>
+        <h2 class="col-h">点検する場所</h2>
+        <div class="list">${locations().map(locRow).join('')}</div>
+      </section>
+      <section class="col col-oxy">${facilitiesCard(fs)}</section>
+    </div>`}`;
 }
 
-/* 施設ごとの酸素（いつも使っている酸素＋予備酸素の合計、L） */
-function facilitiesCard() {
-  const fs = (S.data && S.data.facilities) || [];
-  if (!fs.length) return '';
-  const n = v => Math.round(v).toLocaleString('ja-JP');
-  const big = v => v >= 10000 ? `${(Math.round(v / 1000)).toLocaleString('ja-JP')}千L` : `${n(v)}L`;
-  return `<div class="oxy">
-    <div class="oxy-h"><b>施設ごとの酸素（予備を含む合計）</b></div>
-    <div class="flegend"><span><i style="background:#24456b"></i>使用中</span><span><i style="background:#8fb3dd"></i>待機中</span><span><i style="background:#e0a030"></i>予備酸素</span></div>
+/* 施設ごとの酸素（タップで内訳） */
+function facilitiesCard(fs) {
+  if (!fs.length) return '<p class="muted">酸素のデータがありません</p>';
+  S.openFac = S.openFac || {};
+  return `<div class="oxy-h2"><h2 class="col-h">酸素の残り（施設ごと・予備を含む）</h2>
+      <button data-act="trend">推移</button><button data-act="printOxy">A4で印刷</button></div>
+    <div class="flegend"><span><i class="u"></i>使用中</span><span><i class="s"></i>待機中</span><span><i class="r"></i>予備酸素</span></div>
     ${fs.map(f => {
       const t = f.total_l || 1, w = v => (v / t * 100).toFixed(1) + '%';
-      const days = f.days_total === null ? '—' : f.days_total >= 100 ? '100+' : f.days_total;
-      return `<div class="fac">
-        <div class="fac-h"><b>${esc(f.name)}</b><span class="num" style="font-size:13px;color:var(--muted)">${big(f.total_l)}</span><span class="fd num ${f.level}">${days}<small>日</small></span></div>
-        <div class="fbar"><i class="u" style="width:${w(f.use_l)}"></i><i class="s" style="width:${w(f.stby_l)}"></i><i class="r" style="width:${w(f.reserve_l)}"></i></div>
-        <small class="num">使用中 ${n(f.use_l)}${f.stby_l ? `・待機 ${n(f.stby_l)}` : ''}${f.reserve_l ? `・予備 ${n(f.reserve_l)}` : ''} L${f.daily_l ? `　1日 ${n(f.daily_l)}L` : ''}${f.days_main !== null && f.reserve_l ? `　予備なしで ${f.days_main >= 100 ? '100+' : f.days_main}日` : ''}</small>
+      const open = !!S.openFac[f.name];
+      return `<div class="fcard ${f.level} ${open ? 'open' : ''}">
+        <button class="fc-top" data-act="fac" data-name="${esc(f.name)}" aria-expanded="${open}">
+          <span class="fc-n"><b>${esc(f.name)}</b>${FAC_SUB[f.name] ? `<small>${esc(FAC_SUB[f.name])}</small>` : ''}</span>
+          <span class="fc-d num ${f.level}"><b>${daysTxt(f.days_total)}<i>日</i></b><em>${f.predicted ? md(f.predicted) + ' 頃まで' : 'データ不足'}</em></span>
+          <span class="fc-bar"><i class="u" style="width:${w(f.use_l)}"></i><i class="s" style="width:${w(f.stby_l)}"></i><i class="r" style="width:${w(f.reserve_l)}"></i></span>
+          <span class="fc-s num">合計 <b>${nL(f.total_l)}</b> L${f.daily_l ? `・1日 ${nL(f.daily_l)} L` : ''}</span>
+          <span class="fc-s num rsv">${f.reserve_l ? `予備酸素 <b>${nL(f.reserve_l)}</b> L${f.days_main !== null ? `（予備なしだと ${daysTxt(f.days_main)}日）` : ''}` : '予備酸素なし'}</span>
+          <span class="fc-more">${open ? '閉じる ▲' : 'くわしく ▼'}</span>
+        </button>
+        ${open ? facDetail(f) : ''}
         ${f.missing.length ? `<small class="miss">容量未登録のため合計に入っていません：${esc(f.missing.join('、'))}</small>` : ''}
       </div>`;
-    }).join('')}
-  </div>`;
+    }).join('')}`;
+}
+function facDetail(f) {
+  const ps = facParts(f);
+  if (!ps.length) return '';
+  return `<div class="fc-detail">${ps.map(({ s, reserve, liters }) => `<div class="fp ${s.level}">
+      <div class="fp-h"><b>${reserve ? '<span class="rtag">予備</span>' : ''}${esc(s.short)}</b>${reserve ? '<span class="rsv-t">ふだんは使わない</span>' : `<span class="num ${s.level}">${dayLeftText(s)}<i>日</i></span>`}</div>
+      <small class="num">残り ${s.current}${s.full ? ' / ' + s.full : ''} ${esc(s.unit)}${liters !== null && s.unit !== 'L' ? `（≒ ${nL(liters)} L）` : ''}${s.avg !== null ? `・1日 ${s.avg} ${esc(s.unit)}` : ''}</small>
+      ${s.use_side && !reserve ? `<small class="num">使用中（${esc(s.use_side.side)}側）あと ${daysTxt(s.use_side.days_left)}日${s.use_side.predicted ? `・${md(s.use_side.predicted)} 頃に切替` : ''}</small>` : ''}
+      <small class="num">${reserve ? '' : s.predicted ? `下限に届くのは ${md(s.predicted)} 頃` : '使用量のデータ不足'}${s.last_date ? `${reserve ? '' : '・'}記録 ${md(s.last_date)}` : ''}</small>
+      ${s.detail ? `<small class="num">${esc(s.detail)}</small>` : ''}
+    </div>`).join('')}</div>`;
+}
+
+/* A4で印刷（PDF保存もここから） */
+function printOxy() {
+  const fs = facList();
+  if (!fs.length) { toast('酸素のデータがありません'); return; }
+  const now = new Date();
+  const stamp = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  const sum = fs.reduce((a, f) => ({ t: a.t + f.total_l, r: a.r + f.reserve_l }), { t: 0, r: 0 });
+  const lvTxt = { alert: '至急', warn: '注意', ok: '良好', '': '—' };
+  const html = `<h1>医療ガス 酸素の残り状況</h1>
+    <p class="p-meta">出力：${stamp}　出力者：${esc(S.user || '')}　／　近森病院 臨床工学部 保守管理センター</p>
+    <h2>施設ごとのまとめ（予備酸素を含む）</h2>
+    <table class="p-t"><thead><tr><th>施設</th><th>合計</th><th>うち予備酸素</th><th>1日の使用量</th><th>残り日数<br><small>予備を含む</small></th><th>予備なしの<br>残り日数</th><th>なくなる目安</th><th>状態</th></tr></thead>
+    <tbody>${fs.map(f => `<tr class="${f.level}"><th>${esc(f.name)}${FAC_SUB[f.name] ? `<small>${esc(FAC_SUB[f.name])}</small>` : ''}</th>
+      <td>${nL(f.total_l)} L</td><td>${f.reserve_l ? nL(f.reserve_l) + ' L' : 'なし'}</td><td>${f.daily_l ? nL(f.daily_l) + ' L' : '—'}</td>
+      <td><b>${daysTxt(f.days_total)}</b> 日</td><td>${f.reserve_l ? daysTxt(f.days_main) + ' 日' : '—'}</td><td>${f.predicted ? md(f.predicted) + ' 頃' : '—'}</td><td>${lvTxt[f.level] || '—'}</td></tr>`).join('')}
+      <tr class="p-sum"><th>全体</th><td>${nL(sum.t)} L</td><td>${nL(sum.r)} L</td><td colspan="5"></td></tr></tbody></table>
+    <h2>設備ごとの内訳</h2>
+    <table class="p-t p-d"><thead><tr><th>施設</th><th>設備</th><th>区分</th><th>残量</th><th>L換算</th><th>1日の使用量</th><th>残り日数</th><th>下限の目安</th><th>最終記録</th></tr></thead>
+    <tbody>${fs.map(f => facParts(f).map(({ s, reserve, liters }, i, arr) => `<tr class="${s.level}">
+      ${i === 0 ? `<th rowspan="${arr.length}">${esc(f.name)}</th>` : ''}
+      <td>${esc(s.short)}${s.use_side && !reserve ? `<small>使用中 ${esc(s.use_side.side)}側 あと${daysTxt(s.use_side.days_left)}日</small>` : ''}</td>
+      <td>${reserve ? '予備' : '通常'}</td><td>${s.current}${s.full ? ' / ' + s.full : ''} ${esc(s.unit)}</td>
+      <td>${liters !== null ? nL(liters) + ' L' : '—'}</td><td>${s.avg !== null ? s.avg + ' ' + esc(s.unit) : '—'}</td>
+      <td>${reserve ? '—' : dayLeftText(s) + ' 日'}</td><td>${s.predicted ? md(s.predicted) + ' 頃' : '—'}</td><td>${s.last_date ? md(s.last_date) : '—'}</td></tr>`).join('')).join('')}</tbody></table>
+    <p class="p-note">・残り日数は直近14日の使用量の平均から計算した目安です。　・予備酸素は通常使っていないボンベの量です。　・液化酸素は 1kg ≒ 738L で換算しています。</p>`;
+  let el = document.getElementById('printArea');
+  if (!el) { el = document.createElement('div'); el.id = 'printArea'; document.body.appendChild(el); }
+  el.innerHTML = html;
+  setTimeout(() => window.print(), 50);
 }
 function locRow(loc) {
   const its = S.data.items.filter(i => i.location === loc);
@@ -1289,6 +1437,9 @@ document.addEventListener('click', ev => {
     S.data = fromCache(); if (S.data) OB.ops.forEach(applyOp);
     render(); load(true);
   }
+  else if (act === 'homeTab') { S.homeTab = b.dataset.tab; store.set('homeTab', S.homeTab); render(); window.scrollTo(0, 0); }
+  else if (act === 'fac') { S.openFac = S.openFac || {}; S.openFac[b.dataset.name] = !S.openFac[b.dataset.name]; render(); }
+  else if (act === 'printOxy') printOxy();
   else if (act === 'trend') { S.view = 'trend'; render(); window.scrollTo(0, 0); }
   else if (act === 'ttab') { S.trendTab = b.dataset.t; render(); }
   else if (act === 'month') openMonth(S.date.slice(0, 7));
