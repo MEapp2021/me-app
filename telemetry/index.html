@@ -60,6 +60,30 @@ main{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;-webkit-overf
   #inCol.compact #chIn{font-size:22px;padding:6px;text-align:left;padding-left:12px;background:var(--card)}
   #inCol.compact::after{content:"タップでテンキー";position:absolute;right:22px;bottom:21px;font-size:12px;color:var(--mut);pointer-events:none}
   #inCol{position:relative}#chIn{font-size:32px;padding:6px}.pad{gap:6px;margin-top:8px}.pad button{min-height:50px}}
+.odGrp{margin:4px 0 12px}.odGrp h4{margin:8px 0 4px;font-size:14px;display:flex;gap:6px;align-items:center}
+.odL{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+.odI{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:8px 10px;text-align:left;color:var(--ink);font:inherit;cursor:pointer;min-height:52px}
+.odI b{font-size:18px;display:block;line-height:1.2}.odI small{color:var(--mut);font-size:12px}.odI .ago{color:var(--lost);font-weight:700}
+.odBar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.ptab{width:100%;border-collapse:collapse;table-layout:fixed;margin-top:3mm;font-size:10pt}
+.ptab th{background:#eef3f5;border:0.3mm solid #7d8a92;padding:1.2mm 1mm;font-size:8.5pt;font-weight:700;text-align:center;color:#16202a}
+.ptab td{border:0.3mm solid #7d8a92;height:8.4mm;padding:0 1.5mm;vertical-align:middle;color:#16202a;overflow:hidden;white-space:nowrap}
+.ptab td.c{text-align:center}.ptab td.ch{font-size:12pt;font-weight:700;text-align:center;font-variant-numeric:tabular-nums}
+.ptab .ph{color:#b7c1c7;font-size:8.5pt}.ptab .ck{font-size:8.5pt;letter-spacing:.02em}.ptab .lt{font-size:8pt;color:#55626b}
+.ptab tr.dg td{background:#f6f9fa;font-weight:700;font-size:9pt;height:6mm}
+.allg{display:grid;grid-auto-flow:column;gap:0 1.6mm;margin-top:2mm;flex:none}
+.allg>div{display:grid;grid-template-columns:14mm minmax(0,1fr) 6.5mm;border:0.25mm solid #7d8a92;border-top:0;align-items:stretch}
+.allg>div>span{display:flex;align-items:center;padding:0 1mm;border-left:0.25mm solid #b9c3c9;overflow:hidden;white-space:nowrap}
+.allg>div>span:first-child{border-left:0;font-weight:800;font-variant-numeric:tabular-nums;flex-direction:column;align-items:flex-start;justify-content:center;line-height:1}
+.allg>div>span:first-child small{font-weight:400;font-size:5.2pt;color:#8a969e;margin-top:.3mm}
+.allg>div.h{background:#eef3f5;border-top:0.25mm solid #7d8a92;font-size:7pt;font-weight:700}
+.allg>div.h>span{justify-content:center;font-weight:700}
+.allg>div.u>span:first-child{color:#b7c1c7;font-weight:400}
+.allHead{display:flex;gap:6mm;align-items:flex-end;margin-top:3mm;font-size:10pt}
+.allHead .fill{border-bottom:0.3mm solid #16202a;display:inline-block;min-width:34mm;height:6mm}
+.allLeg{font-size:8pt;color:#16202a;margin-top:2mm;display:flex;gap:4mm;flex-wrap:wrap}
+.allLeg b{font-size:9pt}
+.pgSub{font-size:8.5pt;color:#55626b;margin-top:2mm;display:flex;justify-content:space-between;gap:4mm}
 .tl{display:grid;grid-template-columns:3.2em minmax(0,1fr) auto;gap:2px 8px;align-items:center;padding:8px 2px;border-bottom:1px solid var(--line)}
 .tl .tm{font-size:13px;color:var(--mut)}.tl b{font-size:17px}.tl small{grid-column:2;color:var(--mut);font-size:12px}
 .tl .r{grid-row:1/3;grid-column:3}
@@ -248,7 +272,7 @@ header{gap:6px;flex-wrap:wrap}header h1{font-size:16px}nav{width:100%}nav button
     <div class="card" id="inCol">
       <div class="row" style="justify-content:space-between">
         <div class="seg" id="inMode"><button data-m="pad" aria-pressed="true">テンキー</button><button data-m="dept" aria-pressed="false">部署から</button></div>
-        <span class="row" style="gap:6px"><button class="btn sm todayBtn" id="todayBtn">今日の記録 <span class="tag num" id="todayN3">0</span></button><button class="btn sm" id="qrBtn">QRで読む</button></span>
+        <span class="row" style="gap:6px"><button class="btn sm todayBtn" id="todayBtn">今日の記録 <span class="tag num" id="todayN3">0</span></button><button class="btn sm" id="odBtn">未点検 <span class="tag num warn" id="odN">0</span></button><button class="btn sm" id="qrBtn">QRで読む</button></span>
       </div>
       <div id="padBox" style="margin-top:12px">
         <input id="chIn" class="num" inputmode="none" autocomplete="off" placeholder="CH" aria-label="チャネル番号">
@@ -399,6 +423,23 @@ header{gap:6px;flex-wrap:wrap}header h1{font-size:16px}nav{width:100%}nav button
   <div class="sheet" id="sheet"></div>
 </div>
 
+<div id="odSheet" class="sheetDlg" hidden role="dialog" aria-modal="true" aria-labelledby="odT">
+  <div class="sheetP">
+    <div class="hd"><h3 id="odT">未点検</h3><span class="tag num warn" id="odN2">0</span><button class="btn sm" id="odClose">閉じる</button></div>
+    <div class="odBar"><select id="odDept"></select><button class="btn sm pri" id="odPaper">紙の確認表（PDF・印刷）</button></div>
+    <p class="meta" id="odInfo" style="margin:0 0 6px"></p>
+    <div class="bd" id="odList"></div>
+  </div>
+</div>
+<div id="paper" class="dlg pv" hidden>
+  <div class="lbBar pbar"><b style="flex:1 1 auto">紙の確認表</b>
+    <select id="ppKind"><option value="od">チェックリスト：未点検のCH</option><option value="blank">チェックリスト：空欄（手書き）</option><option value="all">所在確認シート：全CHを1枚に</option></select><select id="ppSort" hidden><option value="ch">CH番号順</option><option value="dept">部署順</option></select>
+    <select id="ppDept"></select>
+    <label class="row" style="gap:4px"><input type="checkbox" id="ppBreak" checked><span class="lbl" style="margin:0">部署ごとに改ページ</span></label>
+    <button class="btn pri" id="ppPrint">PDF・印刷</button><button class="btn" id="ppClose">閉じる</button></div>
+  <p class="meta noprint" style="margin:8px 14px 0">「PDF・印刷」を押すと印刷の画面が開きます。プリンターの代わりに「PDFに保存」を選ぶとPDFになります（iPhoneは共有ボタンから「プリント」→ 2本指で広げるとPDF）。</p>
+  <div class="pages" id="ppPages"></div>
+</div>
 <div id="todaySheet" class="sheetDlg" hidden role="dialog" aria-modal="true" aria-labelledby="tsT">
   <div class="sheetP">
     <div class="hd"><h3 id="tsT">今日の記録</h3><span class="tag num" id="todayN2">0</span><button class="btn sm" id="tsClose">閉じる</button></div>
@@ -573,7 +614,7 @@ const deptOpts=(sel,blank)=>(blank!=null?`<option value="">${esc(blank)}</option
 function renderAll(){
   $('#whoBtn').textContent=sess?sess.name+(sess.admin?'（管理者）':''):'未ログイン';
   $('#adminOnly').hidden=!sess?.admin;
-  renderCheck();renderToday();renderTiles();renderSet();
+  renderCheck();renderToday();renderTiles();renderSet();renderOdCount();
   const f=$('#fDept').value;$('#fDept').innerHTML=deptOpts(f,'全部署');
   const t=$('#tDept').value||lsGet('txc-tdept','');$('#tDept').innerHTML=deptOpts(M.depts.includes(t)?t:M.depts[0],null);
   if(!$('#v-report').hidden)renderNow();
@@ -1052,6 +1093,94 @@ $('#pages').addEventListener('focusout',e=>{
   if(v!==(M.info[d]?.note||'')){commit({k:'deptset',name:d,note:v});toast(`${d}の備考を保存しました`)}
   fitPages();
 });
+
+/* ===== 未点検の一覧 ===== */
+function overdueList(dept){
+  const out=[];
+  for(const c in M.ch){if(!isOverdue(c))continue;const d=curDept(c)||'（所在不明）';if(dept&&d!==dept)continue;const l=M.last[c];
+    out.push({c,d,days:l?.t?daysSince(l.t):null,l})}
+  const order=[...M.depts];const oi=d=>{const i=order.indexOf(d);return i<0?999:i};
+  return out.sort((a,b)=>oi(a.d)-oi(b.d)||(b.days??1e9)-(a.days??1e9)||chSort(a.c,b.c));
+}
+function renderOdCount(){const n=overdueList().length;$('#odN').textContent=n;$('#odN2').textContent=n}
+function renderOd(){
+  const dept=$('#odDept').value,list=overdueList(dept),g={};
+  for(const x of list)(g[x.d]||(g[x.d]=[])).push(x);
+  $('#odInfo').textContent=`最後の点検から${M.cfg.overdueDays}日以上たったCH（修理中・紛失は除く）。押すとその場で点検できます。`;
+  $('#odList').innerHTML=Object.entries(g).map(([d,xs])=>`<div class="odGrp"><h4>${esc(d)} <span class="tag num">${xs.length}</span></h4><div class="odL">${xs.map(x=>`<button class="odI" data-ch="${esc(x.c)}"><b class="num">${esc(x.c)}</b><small>${x.days==null?'<span class="ago">点検記録なし</span>':`<span class="ago">${x.days}日前</span>・${esc(STL[x.l.st]||'')}`}</small></button>`).join('')}</div></div>`).join('')||'<p class="empty">未点検はありません。</p>';
+}
+$('#odBtn').onclick=()=>{const cur=$('#odDept').value;$('#odDept').innerHTML=deptOpts(cur,'全部署');renderOd();$('#odSheet').hidden=false};
+$('#odDept').onchange=renderOd;
+$('#odClose').onclick=()=>{$('#odSheet').hidden=true};
+$('#odSheet').onclick=e=>{if(e.target.id==='odSheet')$('#odSheet').hidden=true};
+$('#odList').onclick=e=>{const c=e.target.closest('[data-ch]')?.dataset.ch;if(!c)return;$('#odSheet').hidden=true;setMode('pad');chIn.value=c;curCh='';pick(c)};
+
+/* ===== 紙の確認表（日付・CH・部署を書く表） ===== */
+const PP_ROWS=25;
+/* 全CHを1枚に：CHは印字、所在と状態を手書きする。台数に合わせて行の高さと列数を決める */
+function allSheet(){
+  const dept=$('#ppDept').value,byDept=$('#ppSort').value==='dept';
+  const oi=d=>{const i=M.depts.indexOf(d);return i<0?999:i};
+  let chs=Object.keys(M.ch).filter(c=>!dept||curDept(c)===dept||M.ch[c].dept===dept);
+  chs.sort(byDept?(a,b)=>oi(curDept(a))-oi(curDept(b))||chSort(a,b):chSort);
+  const extra=Math.max(6,Math.ceil(chs.length*0.04));          // 登録にないCHを書く空欄
+  const total=chs.length+extra,AREA=226;                       // 表に使える高さ(mm)
+  let cols=6,rows=Math.ceil(total/cols);
+  while(AREA/(rows+1)<5.4&&cols<8){cols++;rows=Math.ceil(total/cols)}
+  const h=Math.min(8,AREA/(rows+1));
+  const cells=[...chs.map(c=>`<div style="height:${h}mm"><span>${esc(c)}<small>${esc(curDept(c)||'')}</small></span><span></span><span></span></div>`),
+    ...Array.from({length:rows*cols-chs.length},()=>`<div class="u" style="height:${h}mm"><span>CH</span><span></span><span></span></div>`)];
+  let html='';
+  for(let c=0;c<cols;c++)html+=`<div class="h" style="height:5mm"><span>CH</span><span>所在</span><span>状態</span></div>`+cells.slice(c*rows,(c+1)*rows).join('');
+  const fs=h<6?7.5:h<7?8.5:9.5;
+  return `<section class="pg">
+    <div class="pgHead"><div><div class="ey">テレメータ送信機　紙の確認表</div><h2 style="font-size:20pt">所在確認シート${dept?`　<span style="color:#0b7a75">${esc(dept)}</span>`:'（全CH）'}</h2></div><div class="when">印字 ${esc(full(Date.now()))}<br>${chs.length}台・${byDept?'部署順':'CH番号順'}</div></div>
+    <div class="allHead"><span>記入日 <span class="fill" style="min-width:40mm"></span></span><span>確認者 <span class="fill"></span></span><span>確認した台数 <span class="fill" style="min-width:18mm"></span></span></div>
+    <div class="allLeg"><span><b>状態</b>　○ 使用中　△ 保管中　× 修理・故障　？ 見つからない</span><span>CHの下の小さい字は前回の所在。変わっていれば「所在」に書く（同じなら ✓ でも可）。登録にないCHは灰色の欄にCH番号から書く。</span></div>
+    <div class="allg" style="grid-template-rows:repeat(${rows+1},auto);grid-template-columns:repeat(${cols},minmax(0,1fr));font-size:${fs}pt">${html}</div>
+    <div style="flex:1"></div>
+    <div class="pgFoot"><span>記入後は、アプリの点検画面から入力してください。</span><span>1 / 1</span></div>
+  </section>`;
+}
+function paperPages(){
+  const kind=$('#ppKind').value,dept=$('#ppDept').value,brk=$('#ppBreak').checked;
+  $('#ppSort').hidden=kind!=='all';$('#ppBreak').parentElement.hidden=kind==='all';
+  if(kind==='all')return allSheet();
+  const head=`<colgroup><col style="width:8mm"><col style="width:21mm"><col style="width:19mm"><col style="width:23mm"><col style="width:24mm"><col style="width:47mm"><col style="width:18mm"><col></colgroup>
+    <thead><tr><th>No</th><th>日付</th><th>CH</th><th>部署</th><th>前回の点検</th><th>状態（○をつける）</th><th>確認者</th><th>備考</th></tr></thead>`;
+  const ck='<span class="ck">使用中・保管中・修理・なし</span>';
+  const row=(n,x)=>`<tr><td class="c">${n}</td><td class="c"><span class="ph">　月　　日</span></td><td class="ch">${x?esc(x.c):''}</td><td>${x?esc(x.d):''}</td><td class="lt">${x?(x.days==null?'記録なし':`${esc(mdhm(x.l.t).split(' ')[0])}（${x.days}日前）`):''}</td><td class="c">${ck}</td><td></td><td></td></tr>`;
+  let groups;
+  if(kind==='blank')groups=[{d:dept||'',xs:[]}];
+  else{const list=overdueList(dept);groups=[];
+    if(brk){const g={};for(const x of list)(g[x.d]||(g[x.d]=[])).push(x);groups=Object.entries(g).map(([d,xs])=>({d,xs}))}else groups=[{d:dept||'全部署',xs:list}];
+    if(!groups.length)groups=[{d:dept||'全部署',xs:[]}]}
+  const pages=[];
+  for(const g of groups){
+    const n=Math.max(1,Math.ceil(g.xs.length/PP_ROWS));
+    for(let p=0;p<n;p++){const xs=g.xs.slice(p*PP_ROWS,(p+1)*PP_ROWS);pages.push({d:g.d,xs,p,n,start:p*PP_ROWS})}
+  }
+  const N=pages.length,now=full(Date.now());
+  return pages.map((pg,i)=>{
+    let rows='';for(let r=0;r<PP_ROWS;r++)rows+=row(pg.start+r+1,pg.xs[r]);
+    const title=kind==='blank'?'送信機 確認記入表':'送信機 未点検 確認表';
+    const sub=kind==='blank'?'日付・CH・部署を記入してください':`最後の点検から${M.cfg.overdueDays}日以上（修理中・紛失を除く）　${pg.xs.length?'':'該当なし'}`;
+    return `<section class="pg">
+      <div class="pgHead"><div><div class="ey">テレメータ送信機　紙の確認表</div><h2 style="font-size:20pt">${esc(title)}${pg.d?`　<span style="color:#0b7a75">${esc(pg.d)}</span>`:''}</h2></div><div class="when">${kind==='blank'?'':esc(now)+' 時点<br>'}作成：${esc(sess?.name||'')}</div></div>
+      <div class="pgSub"><span>${esc(sub)}</span><span>${pg.n>1?`${esc(pg.d)} ${pg.p+1}/${pg.n}枚目`:''}</span></div>
+      <table class="ptab">${head}<tbody>${rows}</tbody></table>
+      <div style="flex:1"></div>
+      <div class="pgFoot"><span>記入後は、アプリの点検画面から入力してください（状態：使用中・保管中・修理中・見つからない）。</span><span>${i+1} / ${N}</span></div>
+    </section>`}).join('');
+}
+function renderPaper(){$('#ppPages').innerHTML=paperPages();const w=$('#paper').clientWidth-16,px=210*96/25.4;$('#ppPages').style.zoom=Math.min(1,w/px).toFixed(3)}
+$('#odPaper').onclick=()=>{
+  const d=$('#odDept').value;$('#ppDept').innerHTML=deptOpts(d,'全部署');$('#ppKind').value='od';
+  $('#odSheet').hidden=true;$('#paper').hidden=false;renderPaper();$('#paper').scrollTop=0};
+$('#ppKind').onchange=renderPaper;$('#ppSort').onchange=renderPaper;$('#ppDept').onchange=renderPaper;$('#ppBreak').onchange=renderPaper;
+$('#ppPrint').onclick=()=>printOv('#paper');
+$('#ppClose').onclick=()=>{$('#paper').hidden=true};
+addEventListener('resize',()=>{if(!$('#paper').hidden)renderPaper()});
 
 /* ===== 起動 ===== */
 rebuild();renderAll();renderSync();setMode(lsGet('txc-mode','pad'));
