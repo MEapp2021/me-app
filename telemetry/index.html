@@ -72,7 +72,7 @@ main{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;-webkit-overf
 .ptab .ph{color:#b7c1c7;font-size:8.5pt}.ptab .ck{font-size:8.5pt;letter-spacing:.02em}.ptab .lt{font-size:8pt;color:#55626b}
 .ptab tr.dg td{background:#f6f9fa;font-weight:700;font-size:9pt;height:6mm}
 .allg{display:grid;grid-auto-flow:column;gap:0 1.6mm;margin-top:2mm;flex:none}
-.allg>div{display:grid;grid-template-columns:14mm minmax(0,1fr) 6.5mm;border:0.25mm solid #7d8a92;border-top:0;align-items:stretch}
+.allg>div{display:grid;grid-template-columns:15mm minmax(0,1fr) 8mm;border:0.25mm solid #7d8a92;border-top:0;align-items:stretch}
 .allg>div>span{display:flex;align-items:center;padding:0 1mm;border-left:0.25mm solid #b9c3c9;overflow:hidden;white-space:nowrap}
 .allg>div>span:first-child{border-left:0;font-weight:800;font-variant-numeric:tabular-nums;flex-direction:column;align-items:flex-start;justify-content:center;line-height:1}
 .allg>div>span:first-child small{font-weight:400;font-size:5.2pt;color:#8a969e;margin-top:.3mm}
@@ -1124,11 +1124,12 @@ function allSheet(){
   let chs=Object.keys(M.ch).filter(c=>!dept||curDept(c)===dept||M.ch[c].dept===dept);
   chs.sort(byDept?(a,b)=>oi(curDept(a))-oi(curDept(b))||chSort(a,b):chSort);
   const extra=Math.max(6,Math.ceil(chs.length*0.04));          // 登録にないCHを書く空欄
-  const total=chs.length+extra,AREA=226;                       // 表に使える高さ(mm)
+  const total=chs.length+extra,AREA=214;                       // 表に使える高さ(mm)
   let cols=6,rows=Math.ceil(total/cols);
   while(AREA/(rows+1)<5.4&&cols<8){cols++;rows=Math.ceil(total/cols)}
   const h=Math.min(8,AREA/(rows+1));
-  const cells=[...chs.map(c=>`<div style="height:${h}mm"><span>${esc(c)}<small>${esc(curDept(c)||'')}</small></span><span></span><span></span></div>`),
+  const sub=c=>{const l=M.last[c];return `${curDept(c)||'—'}・${l?.t?(new Date(l.t).getMonth()+1)+'/'+new Date(l.t).getDate():'記録なし'}`};
+  const cells=[...chs.map(c=>`<div style="height:${h}mm"><span>${esc(c)}<small>${esc(sub(c))}</small></span><span></span><span></span></div>`),
     ...Array.from({length:rows*cols-chs.length},()=>`<div class="u" style="height:${h}mm"><span>CH</span><span></span><span></span></div>`)];
   let html='';
   for(let c=0;c<cols;c++)html+=`<div class="h" style="height:5mm"><span>CH</span><span>所在</span><span>状態</span></div>`+cells.slice(c*rows,(c+1)*rows).join('');
@@ -1136,7 +1137,7 @@ function allSheet(){
   return `<section class="pg">
     <div class="pgHead"><div><div class="ey">テレメータ送信機　紙の確認表</div><h2 style="font-size:20pt">所在確認シート${dept?`　<span style="color:#0b7a75">${esc(dept)}</span>`:'（全CH）'}</h2></div><div class="when">印字 ${esc(full(Date.now()))}<br>${chs.length}台・${byDept?'部署順':'CH番号順'}</div></div>
     <div class="allHead"><span>記入日 <span class="fill" style="min-width:40mm"></span></span><span>確認者 <span class="fill"></span></span><span>確認した台数 <span class="fill" style="min-width:18mm"></span></span></div>
-    <div class="allLeg"><span><b>状態</b>　○ 使用中　△ 保管中　× 修理・故障　？ 見つからない</span><span>CHの下の小さい字は前回の所在。変わっていれば「所在」に書く（同じなら ✓ でも可）。登録にないCHは灰色の欄にCH番号から書く。</span></div>
+    <div class="allLeg"><span><b>状態</b>　○ 使用中　△ 保管中　× 修理・故障　？ 見つからない</span><span><b>異常があれば記号のあとに</b>　ア アラーム　汚 汚染　破 破損　（例：○ア、△汚）</span><span>CHの下の小さい字は「前回の所在・最新の確認日」。所在が変わっていれば「所在」に書く（同じなら ✓）。登録にないCHは灰色の欄にCH番号から書く。</span></div>
     <div class="allg" style="grid-template-rows:repeat(${rows+1},auto);grid-template-columns:repeat(${cols},minmax(0,1fr));font-size:${fs}pt">${html}</div>
     <div style="flex:1"></div>
     <div class="pgFoot"><span>記入後は、アプリの点検画面から入力してください。</span><span>1 / 1</span></div>
