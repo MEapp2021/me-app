@@ -72,16 +72,17 @@ main{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;-webkit-overf
 .ptab .ph{color:#b7c1c7;font-size:8.5pt}.ptab .ck{font-size:8.5pt;letter-spacing:.02em}.ptab .lt{font-size:8pt;color:#55626b}
 .ptab tr.dg td{background:#f6f9fa;font-weight:700;font-size:9pt;height:6mm}
 .allg{display:grid;grid-auto-flow:column;gap:0 1.6mm;margin-top:2mm;flex:none}
-.allg>div{display:grid;grid-template-columns:15mm minmax(0,1fr) 8mm;border:0.25mm solid #7d8a92;border-top:0;align-items:stretch}
+.allg>div{display:grid;grid-template-columns:var(--chw,12.5mm) minmax(0,1fr) var(--stw,7mm);border:0.25mm solid #7d8a92;border-top:0;align-items:stretch}
 .allg>div>span{display:flex;align-items:center;padding:0 1mm;border-left:0.25mm solid #b9c3c9;overflow:hidden;white-space:nowrap}
 .allg>div>span:first-child{border-left:0;font-weight:800;font-variant-numeric:tabular-nums;flex-direction:column;align-items:flex-start;justify-content:center;line-height:1}
-.allg>div>span:first-child small{font-weight:400;font-size:5.2pt;color:#8a969e;margin-top:.3mm}
+.allg>div>span:first-child small{font-weight:400;font-size:5pt;color:#8a969e;margin-top:.3mm;display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.allg .pv0{position:relative}.allg .pv0 i{position:absolute;left:.8mm;top:.3mm;font-style:normal;font-size:5pt;color:#a9b4ba;line-height:1;white-space:nowrap}
 .allg>div.h{background:#eef3f5;border-top:0.25mm solid #7d8a92;font-size:7pt;font-weight:700}
 .allg>div.h>span{justify-content:center;font-weight:700}
 .allg>div.u>span:first-child{color:#b7c1c7;font-weight:400}
-.allHead{display:flex;gap:6mm;align-items:flex-end;margin-top:3mm;font-size:10pt}
+.allHead{display:flex;gap:6mm;align-items:flex-end;margin-top:2mm;font-size:10pt}
 .allHead .fill{border-bottom:0.3mm solid #16202a;display:inline-block;min-width:34mm;height:6mm}
-.allLeg{font-size:8pt;color:#16202a;margin-top:2mm;display:flex;gap:4mm;flex-wrap:wrap}
+.allLeg{font-size:7.5pt;color:#16202a;margin-top:1.5mm;display:flex;gap:1mm 4mm;flex-wrap:wrap;line-height:1.35}
 .allLeg b{font-size:9pt}
 .pgSub{font-size:8.5pt;color:#55626b;margin-top:2mm;display:flex;justify-content:space-between;gap:4mm}
 .tl{display:grid;grid-template-columns:3.2em minmax(0,1fr) auto;gap:2px 8px;align-items:center;padding:8px 2px;border-bottom:1px solid var(--line)}
@@ -433,7 +434,7 @@ header{gap:6px;flex-wrap:wrap}header h1{font-size:16px}nav{width:100%}nav button
 </div>
 <div id="paper" class="dlg pv" hidden>
   <div class="lbBar pbar"><b style="flex:1 1 auto">紙の確認表</b>
-    <select id="ppKind"><option value="od">チェックリスト：未点検のCH</option><option value="blank">チェックリスト：空欄（手書き）</option><option value="all">所在確認シート：全CHを1枚に</option></select><select id="ppSort" hidden><option value="ch">CH番号順</option><option value="dept">部署順</option></select>
+    <select id="ppKind"><option value="od">チェックリスト：未点検のCH</option><option value="blank">チェックリスト：空欄（手書き）</option><option value="all">所在確認シート：全CHを1枚に</option></select><select id="ppSize" hidden><option value="1">1枚に収める</option><option value="2">2枚（記入欄を大きく）</option></select><select id="ppSort" hidden><option value="ch">CH番号順</option><option value="dept">部署順</option></select>
     <select id="ppDept"></select>
     <label class="row" style="gap:4px"><input type="checkbox" id="ppBreak" checked><span class="lbl" style="margin:0">部署ごとに改ページ</span></label>
     <button class="btn pri" id="ppPrint">PDF・印刷</button><button class="btn" id="ppClose">閉じる</button></div>
@@ -1117,35 +1118,38 @@ $('#odList').onclick=e=>{const c=e.target.closest('[data-ch]')?.dataset.ch;if(!c
 
 /* ===== 紙の確認表（日付・CH・部署を書く表） ===== */
 const PP_ROWS=25;
-/* 全CHを1枚に：CHは印字、所在と状態を手書きする。台数に合わせて行の高さと列数を決める */
+/* 全CHを1枚（または2枚）に：CHは印字、所在と状態を手書きする。
+   所在の欄を広く取るため、CHと状態の欄は細くし、列は6列まで（1枚）／4列（2枚）にする */
 function allSheet(){
-  const dept=$('#ppDept').value,byDept=$('#ppSort').value==='dept';
+  const dept=$('#ppDept').value,byDept=$('#ppSort').value==='dept',two=$('#ppSize').value==='2';
   const oi=d=>{const i=M.depts.indexOf(d);return i<0?999:i};
   let chs=Object.keys(M.ch).filter(c=>!dept||curDept(c)===dept||M.ch[c].dept===dept);
   chs.sort(byDept?(a,b)=>oi(curDept(a))-oi(curDept(b))||chSort(a,b):chSort);
-  const extra=Math.max(6,Math.ceil(chs.length*0.04));          // 登録にないCHを書く空欄
-  const total=chs.length+extra,AREA=214;                       // 表に使える高さ(mm)
-  let cols=6,rows=Math.ceil(total/cols);
-  while(AREA/(rows+1)<5.4&&cols<8){cols++;rows=Math.ceil(total/cols)}
-  const h=Math.min(8,AREA/(rows+1));
-  const sub=c=>{const l=M.last[c];return `${curDept(c)||'—'}・${l?.t?(new Date(l.t).getMonth()+1)+'/'+new Date(l.t).getDate():'記録なし'}`};
-  const cells=[...chs.map(c=>`<div style="height:${h}mm"><span>${esc(c)}<small>${esc(sub(c))}</small></span><span></span><span></span></div>`),
-    ...Array.from({length:rows*cols-chs.length},()=>`<div class="u" style="height:${h}mm"><span>CH</span><span></span><span></span></div>`)];
-  let html='';
-  for(let c=0;c<cols;c++)html+=`<div class="h" style="height:5mm"><span>CH</span><span>所在</span><span>状態</span></div>`+cells.slice(c*rows,(c+1)*rows).join('');
-  const fs=h<6?7.5:h<7?8.5:9.5;
-  return `<section class="pg">
-    <div class="pgHead"><div><div class="ey">テレメータ送信機　紙の確認表</div><h2 style="font-size:20pt">所在確認シート${dept?`　<span style="color:#0b7a75">${esc(dept)}</span>`:'（全CH）'}</h2></div><div class="when">印字 ${esc(full(Date.now()))}<br>${chs.length}台・${byDept?'部署順':'CH番号順'}</div></div>
+  const md=t=>{const d=new Date(t);return (d.getMonth()+1)+'/'+d.getDate()};
+  const sub=c=>{const l=M.last[c];return l?.t?md(l.t):'記録なし'};
+  const nPages=two?2:1,extra=Math.max(4,Math.ceil(chs.length*0.02)),total=chs.length+extra,AREA=232;
+  const per=Math.ceil(total/nPages),cols=two?4:(per>270?7:6),rows=Math.ceil(per/cols);
+  const h=Math.max(4.4,Math.min(8.5,AREA/(rows+1))),fs=h<5.2?7.5:h<6.2?8.5:h<7.2?9.5:10.5;
+  const cells=[...chs.map(c=>`<div style="height:${h}mm"><span>${esc(c)}<small>${esc(sub(c))}</small></span><span class="pv0"><i>${esc(curDept(c)||'')}</i></span><span></span></div>`),
+    ...Array.from({length:nPages*rows*cols-chs.length},()=>`<div class="u" style="height:${h}mm"><span>CH</span><span></span><span></span></div>`)];
+  const head=`<div class="h" style="height:4.6mm"><span>CH</span><span>所在</span><span>状態</span></div>`;
+  const out=[];
+  for(let p=0;p<nPages;p++){
+    const pc=cells.slice(p*rows*cols,(p+1)*rows*cols);let html='';
+    for(let c=0;c<cols;c++)html+=head+pc.slice(c*rows,(c+1)*rows).join('');
+    out.push(`<section class="pg">
+    <div class="pgHead"><div><div class="ey">テレメータ送信機　紙の確認表</div><h2 style="font-size:19pt">所在確認シート${dept?`　<span style="color:#0b7a75">${esc(dept)}</span>`:'（全CH）'}</h2></div><div class="when">印字 ${esc(full(Date.now()))}<br>${chs.length}台・${byDept?'部署順':'CH番号順'}${two?`・${p+1}/2枚目`:''}</div></div>
     <div class="allHead"><span>記入日 <span class="fill" style="min-width:40mm"></span></span><span>確認者 <span class="fill"></span></span><span>確認した台数 <span class="fill" style="min-width:18mm"></span></span></div>
-    <div class="allLeg"><span><b>状態</b>　○ 使用中　△ 保管中　× 修理・故障　？ 見つからない</span><span><b>異常があれば記号のあとに</b>　ア アラーム　汚 汚染　破 破損　（例：○ア、△汚）</span><span>CHの下の小さい字は「前回の所在・最新の確認日」。所在が変わっていれば「所在」に書く（同じなら ✓）。登録にないCHは灰色の欄にCH番号から書く。</span></div>
-    <div class="allg" style="grid-template-rows:repeat(${rows+1},auto);grid-template-columns:repeat(${cols},minmax(0,1fr));font-size:${fs}pt">${html}</div>
+    <div class="allLeg"><span><b>状態</b> ○使用中 △保管中 ×修理・故障 ？見つからない</span><span><b>異常は後ろに</b> ア アラーム 汚 汚染 破 破損（例 ○ア）</span><span>CHの下の小さい字＝最新の確認日。所在欄の左上の薄い字＝前回の所在（同じなら ✓、変わっていれば部署名を書く）。灰色の欄は登録にないCH用。</span></div>
+    <div class="allg" style="grid-template-rows:repeat(${rows+1},auto);grid-template-columns:repeat(${cols},minmax(0,1fr));font-size:${fs}pt;--chw:${two?14:11}mm;--stw:${two?9:6}mm">${html}</div>
     <div style="flex:1"></div>
-    <div class="pgFoot"><span>記入後は、アプリの点検画面から入力してください。</span><span>1 / 1</span></div>
-  </section>`;
+    <div class="pgFoot"><span>記入後は、アプリの点検画面から入力してください。</span><span>${p+1} / ${nPages}</span></div>
+  </section>`)}
+  return out.join('');
 }
 function paperPages(){
   const kind=$('#ppKind').value,dept=$('#ppDept').value,brk=$('#ppBreak').checked;
-  $('#ppSort').hidden=kind!=='all';$('#ppBreak').parentElement.hidden=kind==='all';
+  $('#ppSort').hidden=$('#ppSize').hidden=kind!=='all';$('#ppBreak').parentElement.hidden=kind==='all';
   if(kind==='all')return allSheet();
   const head=`<colgroup><col style="width:8mm"><col style="width:21mm"><col style="width:19mm"><col style="width:23mm"><col style="width:24mm"><col style="width:47mm"><col style="width:18mm"><col></colgroup>
     <thead><tr><th>No</th><th>日付</th><th>CH</th><th>部署</th><th>前回の点検</th><th>状態（○をつける）</th><th>確認者</th><th>備考</th></tr></thead>`;
@@ -1178,7 +1182,7 @@ function renderPaper(){$('#ppPages').innerHTML=paperPages();const w=$('#paper').
 $('#odPaper').onclick=()=>{
   const d=$('#odDept').value;$('#ppDept').innerHTML=deptOpts(d,'全部署');$('#ppKind').value='od';
   $('#odSheet').hidden=true;$('#paper').hidden=false;renderPaper();$('#paper').scrollTop=0};
-$('#ppKind').onchange=renderPaper;$('#ppSort').onchange=renderPaper;$('#ppDept').onchange=renderPaper;$('#ppBreak').onchange=renderPaper;
+$('#ppKind').onchange=renderPaper;$('#ppSort').onchange=renderPaper;$('#ppSize').onchange=renderPaper;$('#ppDept').onchange=renderPaper;$('#ppBreak').onchange=renderPaper;
 $('#ppPrint').onclick=()=>printOv('#paper');
 $('#ppClose').onclick=()=>{$('#paper').hidden=true};
 addEventListener('resize',()=>{if(!$('#paper').hidden)renderPaper()});
